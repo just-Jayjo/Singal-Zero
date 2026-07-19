@@ -91,6 +91,7 @@ export class DartboardTarget {
     const tex = this._generateTexture()
     const faceMat = new THREE.MeshStandardMaterial({
       map: tex, side: THREE.DoubleSide,
+      emissive: new THREE.Color(0x444466), emissiveIntensity: 0.1,
       metalness: 0.3, roughness: 0.6
     })
     const face = new THREE.Mesh(new THREE.CircleGeometry(R, 32), faceMat)
@@ -107,35 +108,32 @@ export class DartboardTarget {
     const bracketMat = new THREE.MeshStandardMaterial({
       color: 0x555577, metalness: 0.8, roughness: 0.2
     })
-    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.12), bracketMat)
-    bracket.position.set(0, -R * 0.5, -0.06)
+    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.15), bracketMat)
+    bracket.position.set(0, -R * 0.5, -0.08)
     face.add(bracket)
-
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.08), bracketMat)
-    arm.position.set(0, -R * 0.5, -0.14)
-    face.add(arm)
 
     /* 壁軌 */
     const railMat = new THREE.MeshStandardMaterial({
-      color: 0x4444aa, emissive: 0x4444ff, emissiveIntensity: 0.15
+      color: 0x4444aa, emissive: 0x4444ff, emissiveIntensity: 0.2
     })
-    const railLen = 10
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.015, railLen), railMat)
-    rail.position.set(0, 0, 0)
+    const railLen = 8
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, railLen), railMat)
     group.add(rail)
 
     /* 軌道端點 */
     for (const zOff of [-railLen / 2, railLen / 2]) {
-      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.03), railMat)
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.04), railMat)
       cap.position.set(0, 0, zOff)
       group.add(cap)
     }
 
-    group.position.copy(position)
+    /* 略微突出牆面避免 z-fighting */
+    const offset = this._wallNormal.clone().multiplyScalar(-0.05)
+    group.position.copy(position.clone().add(offset))
 
-    /* 面向牆外 */
+    /* 面向牆外 — local +Z 對準玩家 */
     const up = new THREE.Vector3(0, 1, 0)
-    const target = position.clone().add(this._wallNormal)
+    const target = position.clone().sub(this._wallNormal)
     group.lookAt(target, up)
 
     this.mesh = group
@@ -227,7 +225,8 @@ export class DartboardTarget {
       this.mesh.visible = false
       if (this._respawnTimer <= 0) {
         this._alive = true
-        this.mesh.position.copy(this._spawnPos)
+        const offset = this._wallNormal.clone().multiplyScalar(-0.05)
+        this.mesh.position.copy(this._spawnPos).add(offset)
         this.mesh.visible = true
       }
       return
