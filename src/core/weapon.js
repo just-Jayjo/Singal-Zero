@@ -924,9 +924,11 @@ export class WeaponManager {
     const rifle = new BurstRifle(this.scene, this.camera)
     this.weapons.push(rifle)
     rifle.mesh.visible = false
+    if (rifle._forearmGroup) rifle._forearmGroup.visible = false
     const grenade = new Grenade(this.scene, this.camera)
     this.weapons.push(grenade)
     grenade.mesh.visible = false
+    if (grenade._forearmGroup) grenade._forearmGroup.visible = false
     this.currentWeapon = pistol
     this.setupWeaponSwitch()
   }
@@ -946,13 +948,15 @@ export class WeaponManager {
   }
 
   switchTo(index) {
-    if (this.currentWeapon && this.currentWeapon.mesh) {
-      this.currentWeapon.mesh.visible = false
+    if (this.currentWeapon) {
+      if (this.currentWeapon.mesh) this.currentWeapon.mesh.visible = false
+      if (this.currentWeapon._forearmGroup) this.currentWeapon._forearmGroup.visible = false
     }
     this.currentIndex = index
     this.currentWeapon = this.weapons[index]
-    if (this.currentWeapon && this.currentWeapon.mesh) {
-      this.currentWeapon.mesh.visible = true
+    if (this.currentWeapon) {
+      if (this.currentWeapon.mesh) this.currentWeapon.mesh.visible = true
+      if (this.currentWeapon._forearmGroup) this.currentWeapon._forearmGroup.visible = true
     }
   }
 
