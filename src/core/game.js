@@ -1323,40 +1323,14 @@ export class Game {
   }
 
   startEndingSequence() {
-    this.endingSequence = true
-    this.endingTimer = 0
-    this.transitioning = true
+    this.transitioning = false
     this.clearReady = false
     for (const e of this.enemies) {
       if (e.clearProjectiles) e.clearProjectiles()
     }
     if (this.audio) this.audio.stopBGM()
-    this._endingCameraPos = this.camera.position.clone()
-    this._endingOrbitAngle = 0
-    this._endingParticles = []
     document.getElementById('hud').style.display = 'none'
-
-    for (let i = 0; i < 60; i++) {
-      const geo = new THREE.SphereGeometry(0.02, 4, 4)
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0x00f2ff, transparent: true, opacity: 0.3 + Math.random() * 0.4
-      })
-      const p = new THREE.Mesh(geo, mat)
-      const a = Math.random() * Math.PI * 2
-      const r = 1 + Math.random() * 8
-      p.position.set(
-        Math.cos(a) * r,
-        Math.random() * 4,
-        Math.sin(a) * r
-      )
-      p.userData = { angle: a, radius: r, speed: 0.1 + Math.random() * 0.2, height: p.position.y }
-      this.scene.add(p)
-      this._endingParticles.push(p)
-    }
-
-    this.narrative.show(NARRATIVE_ENDING, () => {
-      this._showFinalEndingOverlay()
-    })
+    this.showResults()
   }
 
   _showFinalEndingOverlay() {
@@ -1576,7 +1550,7 @@ export class Game {
       else if (score > 400) grade = 'B'
     }
 
-    const won = !dead && this.currentLevel >= LEVEL_CLASSES.length && this.currentLevel > 0
+    const won = !dead && this.currentLevel >= LEVEL_CLASSES.length - 1
     this._retryLevel = dead ? this.currentLevel : 0
     document.getElementById('result-title').innerHTML = won ? '<span style="display:inline-block;width:14px;height:14px;border:2px solid #00f2ff;margin-right:8px;vertical-align:middle;position:relative;top:-2px"></span> 訊號中斷' : dead ? '任務失敗' : '任務完成'
     document.getElementById('result-subtitle').textContent = won ? '零層已淨化。訊號源頭已被摧毀。倖存者正在撤離。' : ''
