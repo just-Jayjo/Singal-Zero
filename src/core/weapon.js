@@ -166,8 +166,8 @@ class WeaponBase {
   }
   shoot(enemies, camera, level) {
     if (this.isReloading) return null
-    if (this.currentAmmo <= 0 && this.reserveAmmo > 0) {
-      this.reload()
+    if (this.currentAmmo <= 0) {
+      if (this.reserveAmmo > 0) this.reload()
       return null
     }
     if (this.fireTimer > 0) return null
@@ -574,14 +574,13 @@ class BurstRifle extends WeaponBase {
 
   shoot(enemies, camera, level) {
     if (this.isReloading) return null
-    if (this.currentAmmo <= 0 && this.reserveAmmo > 0) { this.reload(); return null }
+    if (this.currentAmmo <= 0) {
+      if (this.reserveAmmo > 0) this.reload()
+      return null
+    }
     if (this.fireTimer > 0) return null
 
     this.fireTimer = this.fireRate
-    if (this.currentAmmo <= 0 && this.reserveAmmo > 0) {
-      this.reload()
-      return null
-    }
     this.burstRemaining = this.burstCount
     this.burstTimer = 0
     this._burstEnemies = enemies
