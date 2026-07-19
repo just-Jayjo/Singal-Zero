@@ -1,120 +1,143 @@
 import * as THREE from 'three'
 
 export class DartboardTarget {
-  constructor(position) {
+  constructor(position, wallNormal = new THREE.Vector3(-1, 0, 0)) {
     this.type = 'dartboardTarget'
     this.mesh = null
     this.hp = 999
     this.maxHp = 999
     this.dead = false
     this.canShoot = false
-    this.radius = 0.8
+    this.radius = 0.5
     this.moving = true
     this._alive = true
     this._respawnTimer = 0
-    this._hitFlash = 0
-    this._moveRange = 5
-    this._moveSpeed = 0.8
+    this._moveRange = 6
+    this._moveSpeed = 0.6
     this._spawnPos = position.clone()
     this._moveOrigin = position.clone()
-    this._scorePopups = []
-    this._totalScore = 0
+    this._wallNormal = wallNormal.clone().normalize()
     this._faceMesh = null
+    this._score = 0
     this.createMesh(position)
+  }
+
+  _generateTexture() {
+    const size = 512
+    const c = document.createElement('canvas')
+    c.width = size
+    c.height = size
+    const ctx = c.getContext('2d')
+    const cx = size / 2, cy = size / 2, R = size / 2 - 4
+
+    ctx.clearRect(0, 0, size, size)
+
+    const zones = [
+      { pct: 1.0, color: '#cc3333' },
+      { pct: 0.75, color: '#ffffff' },
+      { pct: 0.50, color: '#cc3333' },
+      { pct: 0.25, color: '#ffd700' },
+    ]
+    for (const z of zones) {
+      const r = R * z.pct
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.fillStyle = z.color
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.3)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
+
+    /* 紅心 */
+    ctx.beginPath()
+    ctx.arc(cx, cy, R * 0.08, 0, Math.PI * 2)
+    ctx.fillStyle = '#ff4444'
+    ctx.fill()
+
+    /* inner ring outline */
+    for (const pct of [0.75, 0.5, 0.25]) {
+      ctx.beginPath()
+      ctx.arc(cx, cy, R * pct, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+    }
+
+    /* 分數標示 */
+    const labels = [
+      { pct: 0.88, text: '50', size: 28 },
+      { pct: 0.63, text: '100', size: 32 },
+      { pct: 0.38, text: '150', size: 36 },
+      { pct: 0.13, text: '250', size: 42 },
+    ]
+    for (const l of labels) {
+      ctx.fillStyle = 'rgba(0, 242, 255, 0.3)'
+      ctx.font = `bold ${l.size}px monospace`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(l.text, cx, cy + (1 - l.pct) * R * 0.6)
+    }
+
+    const tex = new THREE.CanvasTexture(c)
+    tex.needsUpdate = true
+    return tex
   }
 
   createMesh(position) {
     const group = new THREE.Group()
     const R = 0.6
 
-    const outerMat = new THREE.MeshStandardMaterial({ color: 0xcc4444, metalness: 0.3, roughness: 0.6 })
-    const midMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.2, roughness: 0.7 })
-    const innerMat = new THREE.MeshStandardMaterial({ color: 0xcc4444, metalness: 0.3, roughness: 0.6 })
-    const bullseyeMat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xff8800, emissiveIntensity: 0.2 })
-    const baseMat = new THREE.MeshStandardMaterial({ color: 0x333344, metalness: 0.8, roughness: 0.2 })
-    const poleMat = new THREE.MeshStandardMaterial({ color: 0x444455, metalness: 0.7, roughness: 0.3 })
-    const ringMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x0088cc, emissiveIntensity: 0.15, transparent: true, opacity: 0.3 })
-
-    /* 底座 */
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 0.04, 12), baseMat)
-    base.position.y = 0.02
-    group.add(base)
-
-    /* 支柱 */
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.7, 8), poleMat)
-    pole.position.y = 0.38
-    group.add(pole)
-
-    /* 靶面 — 單一碰撞體，各區塊用子 mesh 裝飾 */
-    const faceMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.2, roughness: 0.7, side: THREE.DoubleSide })
+    const tex = this._generateTexture()
+    const faceMat = new THREE.MeshStandardMaterial({
+      map: tex, side: THREE.DoubleSide,
+      metalness: 0.3, roughness: 0.6
+    })
     const face = new THREE.Mesh(new THREE.CircleGeometry(R, 32), faceMat)
-    face.position.set(0, 0.75, 0)
-    face.rotation.x = -Math.PI / 2
-    group.add(face)
     this._faceMesh = face
 
-    /* 計分環裝飾 */
-    const zones = [
-      { radius: R, color: 0xcc4444, emissive: 0x441111, label: '50' },
-      { radius: R * 0.75, color: 0xffffff, emissive: 0x222222, label: '100' },
-      { radius: R * 0.5, color: 0xcc4444, emissive: 0x441111, label: '150' },
-      { radius: R * 0.25, color: 0xffd700, emissive: 0xff8800, label: '250' },
-    ]
+    /* 邊框 */
+    const rimMat = new THREE.MeshStandardMaterial({
+      color: 0x334466, metalness: 0.7, roughness: 0.3
+    })
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.025, 8, 32), rimMat)
+    face.add(rim)
 
-    for (const z of zones) {
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.01, z.radius, 32),
-        new THREE.MeshStandardMaterial({ color: z.color, emissive: z.emissive, emissiveIntensity: 0.1, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
-      )
-      ring.position.set(0, 0.75, 0.001)
-      ring.rotation.x = -Math.PI / 2
-      group.add(ring)
+    /* 壁掛支架 */
+    const bracketMat = new THREE.MeshStandardMaterial({
+      color: 0x555577, metalness: 0.8, roughness: 0.2
+    })
+    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.12), bracketMat)
+    bracket.position.set(0, -R * 0.5, -0.06)
+    face.add(bracket)
 
-      const outline = new THREE.Mesh(
-        new THREE.TorusGeometry(z.radius, 0.012, 8, 32),
-        ringMat
-      )
-      outline.position.set(0, 0.75, 0.002)
-      outline.rotation.x = -Math.PI / 2
-      group.add(outline)
-    }
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.08), bracketMat)
+    arm.position.set(0, -R * 0.5, -0.14)
+    face.add(arm)
 
-    /* 標示文字「50」「100」「150」「250」 */
-    const textCanvas = document.createElement('canvas')
-    textCanvas.width = 256
-    textCanvas.height = 256
-    const ctx = textCanvas.getContext('2d')
-    ctx.clearRect(0, 0, 256, 256)
-
-    const labels = [
-      { r: 0.88, text: '50', size: 18 },
-      { r: 0.63, text: '100', size: 20 },
-      { r: 0.38, text: '150', size: 22 },
-      { r: 0.13, text: '250', size: 26 },
-    ]
-    for (const l of labels) {
-      ctx.fillStyle = 'rgba(0, 242, 255, 0.25)'
-      ctx.font = `${l.size}px monospace`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(l.text, 128, 128 + (1 - l.r) * 110)
-    }
-
-    const textTex = new THREE.CanvasTexture(textCanvas)
-    const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false })
-    const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(R * 2, R * 2), textMat)
-    textPlane.position.set(0, 0.75, 0.003)
-    textPlane.rotation.x = -Math.PI / 2
-    group.add(textPlane)
-
-    /* 軌道平台 */
-    const railMat = new THREE.MeshStandardMaterial({ color: 0x4444aa, emissive: 0x4444ff, emissiveIntensity: 0.2 })
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.015, 10), railMat)
-    rail.position.y = 0.04
+    /* 壁軌 */
+    const railMat = new THREE.MeshStandardMaterial({
+      color: 0x4444aa, emissive: 0x4444ff, emissiveIntensity: 0.15
+    })
+    const railLen = 10
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.015, railLen), railMat)
+    rail.position.set(0, 0, 0)
     group.add(rail)
 
+    /* 軌道端點 */
+    for (const zOff of [-railLen / 2, railLen / 2]) {
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.03), railMat)
+      cap.position.set(0, 0, zOff)
+      group.add(cap)
+    }
+
     group.position.copy(position)
-    group.lookAt(0, group.position.y, 0)
+
+    /* 面向牆外 */
+    const up = new THREE.Vector3(0, 1, 0)
+    const target = position.clone().add(this._wallNormal)
+    group.lookAt(target, up)
+
     this.mesh = group
   }
 
@@ -132,15 +155,15 @@ export class DartboardTarget {
     if (!this._alive || this.dead || !this.mesh.visible) return false
     let score = 50
     if (hitInfo && hitInfo.point && this._faceMesh) {
+      this._faceMesh.updateWorldMatrix(true, false)
       const localPt = new THREE.Vector3().copy(hitInfo.point)
       this._faceMesh.worldToLocal(localPt)
       score = this.getScoreForHit(localPt)
     }
-    this._totalScore += score
+    this._score += score
     this._alive = false
     this.mesh.visible = false
     this._respawnTimer = 1.0
-    this._hitFlash = 0.15
     this._spawnScorePopup(hitInfo ? hitInfo.point : this.mesh.position, score)
 
     const game = this._getGame()
@@ -214,8 +237,6 @@ export class DartboardTarget {
       const t = performance.now() * 0.001 * this._moveSpeed
       const offset = Math.sin(t) * this._moveRange
       this.mesh.position.z = this._moveOrigin.z + offset
-      const xOffset = Math.cos(t * 0.7) * this._moveRange * 0.3
-      this.mesh.position.x = this._moveOrigin.x + xOffset
     }
 
     const bob = Math.sin(performance.now() * 0.002) * 0.005

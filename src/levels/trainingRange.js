@@ -229,13 +229,14 @@ export class TrainingRange {
       game.enemies.push(dummy)
     }
 
-    /* 飛鏢靶 */
+    /* 壁掛飛鏢靶 — 東牆 (x=30)，面朝 -X */
+    const wallFaceX = this.halfSize - 0.15
+    const wallNormal = new THREE.Vector3(-1, 0, 0)
     const dartboardPositions = [
-      { x: 12, z: -7 }, { x: 12, z: 7 },
-      { x: 20, z: -6 }, { x: 20, z: 6 },
+      { z: -3, y: 1.6 }, { z: 3, y: 1.6 },
     ]
     for (const t of dartboardPositions) {
-      const db = new DartboardTarget(new THREE.Vector3(t.x, 0.3, t.z))
+      const db = new DartboardTarget(new THREE.Vector3(wallFaceX, t.y, t.z), wallNormal)
       game.scene.add(db.mesh)
       game.enemies.push(db)
     }

@@ -27,6 +27,7 @@ const _modelCache = new Map()
 
 export class Game {
   constructor() {
+    window.__game = this
     this.scene = null
     this.camera = null
     this.renderer = null
