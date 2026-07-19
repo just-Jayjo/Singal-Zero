@@ -3,4 +3,5 @@
 
 Signal Zero — a browser-based first-person shooter built with Three.js. A Vibe Coding teaching project by Lishan High School Computer Club, showcasing AI-assisted game development with fully procedural art.
 links：
+
 https://just-jayjo.github.io/Singal-Zero/
