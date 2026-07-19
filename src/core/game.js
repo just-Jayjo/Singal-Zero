@@ -130,14 +130,14 @@ export class Game {
 
   _preloadAssets() {
     const modelUrls = [
-      '/models/shipping_crate.glb',
-      '/models/robot_polygonal_mind.glb',
-      '/models/robot_drone.glb',
-      '/models/sci-fi_turret_animated_by_get3dmodels.glb',
-      '/models/robot_-_runaway_boy_stealth_escape_by_get3dmodels.glb',
-      '/models/cyberpunk_drone_concept_design_by_get3dmodels.glb',
-      '/models/abandoned_mecha_by_get3dmodels.glb',
-      '/models/babys_first_mecha_by_get3dmodels.glb'
+      './models/shipping_crate.glb',
+      './models/robot_polygonal_mind.glb',
+      './models/robot_drone.glb',
+      './models/sci-fi_turret_animated_by_get3dmodels.glb',
+      './models/robot_-_runaway_boy_stealth_escape_by_get3dmodels.glb',
+      './models/cyberpunk_drone_concept_design_by_get3dmodels.glb',
+      './models/abandoned_mecha_by_get3dmodels.glb',
+      './models/babys_first_mecha_by_get3dmodels.glb'
     ]
     for (const url of modelUrls) {
       this._gltfLoader.load(url, gltf => {
@@ -146,14 +146,14 @@ export class Game {
       })
     }
     const texUrls = [
-      { key: 'floorColor', url: '/textures/Metal009/Metal009_2K-JPG_Color.jpg' },
-      { key: 'floorNormal', url: '/textures/Metal009/Metal009_2K-JPG_NormalGL.jpg' },
-      { key: 'floorRoughness', url: '/textures/Metal009/Metal009_2K-JPG_Roughness.jpg' },
-      { key: 'floorMetalness', url: '/textures/Metal009/Metal009_2K-JPG_Metalness.jpg' },
-      { key: 'wallColor', url: '/textures/Metal022/Metal022_2K-JPG_Color.jpg' },
-      { key: 'wallNormal', url: '/textures/Metal022/Metal022_2K-JPG_NormalGL.jpg' },
-      { key: 'wallRoughness', url: '/textures/Metal022/Metal022_2K-JPG_Roughness.jpg' },
-      { key: 'wallMetalness', url: '/textures/Metal022/Metal022_2K-JPG_Metalness.jpg' }
+      { key: 'floorColor', url: './textures/Metal009/Metal009_2K-JPG_Color.jpg' },
+      { key: 'floorNormal', url: './textures/Metal009/Metal009_2K-JPG_NormalGL.jpg' },
+      { key: 'floorRoughness', url: './textures/Metal009/Metal009_2K-JPG_Roughness.jpg' },
+      { key: 'floorMetalness', url: './textures/Metal009/Metal009_2K-JPG_Metalness.jpg' },
+      { key: 'wallColor', url: './textures/Metal022/Metal022_2K-JPG_Color.jpg' },
+      { key: 'wallNormal', url: './textures/Metal022/Metal022_2K-JPG_NormalGL.jpg' },
+      { key: 'wallRoughness', url: './textures/Metal022/Metal022_2K-JPG_Roughness.jpg' },
+      { key: 'wallMetalness', url: './textures/Metal022/Metal022_2K-JPG_Metalness.jpg' }
     ]
     for (const { key, url } of texUrls) {
       this._texLoader.load(url, tex => _textureCache.set(key, tex))
@@ -384,9 +384,9 @@ export class Game {
       this.scene.fog = new THREE.FogExp2(fogBase, this.difficulty === 'hard' ? 0.018 : this.difficulty === 'easy' ? 0.008 : 0.012)
       if (this.audio && !this.trainingMode) {
         if (this.currentLevel === 4) {
-          this.audio.playBGMFile('/audio/bgm_boss.wav', () => this.audio.playBossBGMLayer())
+          this.audio.playBGMFile('./audio/bgm_boss.wav', () => this.audio.playBossBGMLayer())
         } else {
-          this.audio.playBGMFile('/audio/bgm_normal.wav', () => this.audio.playBGMLayer())
+          this.audio.playBGMFile('./audio/bgm_normal.wav', () => this.audio.playBGMLayer())
         }
       }
       const LevelClass = LEVEL_CLASSES[this.currentLevel]

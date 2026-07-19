@@ -797,7 +797,7 @@ export class AudioManager {
     this.stopBGM()
     const tryPlay = (retries = 2) => {
       try {
-        const audioEl = new Audio(filename || '/audio/bgm_industrial.mp3')
+        const audioEl = new Audio(filename || './audio/bgm_industrial.mp3')
         audioEl.loop = true
         audioEl.volume = 1.0
         audioEl.crossOrigin = 'anonymous'
