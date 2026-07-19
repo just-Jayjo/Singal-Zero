@@ -83,11 +83,13 @@ export class HUD {
 
   showDamage() {
     if (!this.hitIndicator) return
+    this.hitIndicator.classList.remove('damage')
+    void this.hitIndicator.offsetHeight
     this.hitIndicator.classList.add('damage')
     if (this.damageTimeout) clearTimeout(this.damageTimeout)
     this.damageTimeout = setTimeout(() => {
       this.hitIndicator.classList.remove('damage')
-    }, 200)
+    }, 800)
   }
 
   showHit() {

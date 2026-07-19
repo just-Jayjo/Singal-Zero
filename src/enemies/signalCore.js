@@ -39,6 +39,7 @@ export class SignalCore {
     this.missileTimer = 99.0
     this.laserTimer = 99.0
     this.trackTimer = 0
+    this._lastSfxTime = 0
 
     this.createMesh(position)
   }
@@ -120,6 +121,10 @@ export class SignalCore {
     this.hp -= amount
     const ratio = this.hp / this.maxHp
     const thresh = this._getPhaseHpThresholds()
+    if (this._game && this._game.audio && performance.now() - this._lastSfxTime > 800) {
+      this._game.audio.playSFX('bossGrowl')
+      this._lastSfxTime = performance.now()
+    }
 
     if (ratio <= 0) {
       this.hp = 0
@@ -138,6 +143,9 @@ export class SignalCore {
     this.phaseTransitioning = true
     this.phase = newPhase
     this.shootTimer = 2.0
+    if (this._game && this._game.audio) {
+      this._game.audio.playSFX('bossRoar')
+    }
 
     if (this._coreGlow) {
       const color = newPhase === 2 ? 0xff4488 : 0xff0000
@@ -454,6 +462,7 @@ export class SignalCore {
 
   /* Attack: Tracking homing orbs */
   _fireTrackingOrbs() {
+    if (this._game && this._game.audio) this._game.audio.playSFX('bossPulse')
     const origin = this.mesh.position.clone()
     origin.y += 0.5
     const count = 2 + this.phase

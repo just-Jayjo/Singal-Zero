@@ -940,6 +940,76 @@ export class AudioManager {
     this._bgmNodes = [masterG, padG, padFil, ...padOscs, bassG, bassOsc, arpG, arpFil, noiseG, noiseFil, noiseSrc]
   }
 
+  playSFX(type) {
+    if (!this._initContext()) return
+    const ctx = this.ctx
+    const now = ctx.currentTime
+    const dest = this.masterGain || ctx.destination
+
+    if (type === 'bossGrowl') {
+      const dur = 0.5
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'
+      filter.frequency.setValueAtTime(200, now)
+      filter.frequency.exponentialRampToValueAtTime(80, now + dur)
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(80, now)
+      osc.frequency.exponentialRampToValueAtTime(40, now + dur)
+      gain.gain.setValueAtTime(0.15, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+      osc.connect(filter); filter.connect(gain); gain.connect(dest)
+      osc.start(now); osc.stop(now + dur)
+    }
+
+    if (type === 'bossRoar') {
+      const dur = 0.8
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'
+      filter.frequency.setValueAtTime(400, now)
+      filter.frequency.exponentialRampToValueAtTime(60, now + dur)
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(150, now)
+      osc.frequency.exponentialRampToValueAtTime(30, now + dur)
+      gain.gain.setValueAtTime(0.25, now)
+      gain.gain.setValueAtTime(0.25, now + 0.1)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+      osc.connect(filter); filter.connect(gain); gain.connect(dest)
+      osc.start(now); osc.stop(now + dur)
+      const noiseDur = 0.3
+      const bufferSize = Math.floor(ctx.sampleRate * noiseDur)
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1
+      const noise = ctx.createBufferSource()
+      noise.buffer = buffer
+      const nGain = ctx.createGain()
+      nGain.gain.setValueAtTime(0.08, now + 0.2)
+      nGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur + 0.2)
+      noise.connect(nGain); nGain.connect(dest)
+      noise.start(now + 0.2); noise.stop(now + 0.2 + noiseDur)
+    }
+
+    if (type === 'bossPulse') {
+      const dur = 0.15
+      for (let i = 0; i < 3; i++) {
+        const t = now + i * 0.2
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(100 + i * 50, t)
+        osc.frequency.exponentialRampToValueAtTime(200 + i * 80, t + dur)
+        gain.gain.setValueAtTime(0.12, t)
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur)
+        osc.connect(gain); gain.connect(dest)
+        osc.start(t); osc.stop(t + dur)
+      }
+    }
+  }
+
   stopBGM() {
     this._bgmStop = true;
     if (this._bgmInterval) {
