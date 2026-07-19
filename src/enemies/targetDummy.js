@@ -8,7 +8,7 @@ export class TargetDummy {
     this.maxHp = 1
     this.dead = false
     this.canShoot = false
-    this.radius = 0.5
+    this.radius = 0.6
     this.moving = moving
     this._alive = true
     this._respawnTimer = 0
@@ -41,14 +41,14 @@ export class TargetDummy {
     pole.position.y = 0.32
     group.add(pole)
 
-    /* 身體 — 圓形靶面 */
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.04, 16), bodyMat)
+    /* 身體 — 圓形靶面（加大） */
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.04, 20), bodyMat)
     body.position.set(0, 0.65, 0)
     body.rotation.x = -Math.PI / 2
     group.add(body)
 
     /* 靶心 */
-    const bullseye = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.041, 12),
+    const bullseye = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.041, 16),
       new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff4444, emissiveIntensity: 0.3 }))
     bullseye.position.set(0, 0.65, 0)
     bullseye.rotation.x = -Math.PI / 2
@@ -56,7 +56,7 @@ export class TargetDummy {
 
     /* 靶環 */
     for (let i = 1; i <= 3; i++) {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.06 + i * 0.04, 0.006, 8, 16),
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09 + i * 0.06, 0.008, 10, 20),
         new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xffffff : 0xcc4444, metalness: 0.2, roughness: 0.7 }))
       ring.position.set(0, 0.65, 0.001)
       ring.rotation.x = -Math.PI / 2
@@ -81,7 +81,7 @@ export class TargetDummy {
     this.mesh = group
   }
 
-  takeDamage(amount) {
+  takeDamage(amount, hitInfo) {
     if (!this._alive || this.dead || !this.mesh.visible) return false
     this.hp -= amount
     this._alive = false

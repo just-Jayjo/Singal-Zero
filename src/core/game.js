@@ -60,6 +60,7 @@ export class Game {
     this.trainingMode = false
     this.trainingEnemy = null
     this._trainingSpawned = false
+    this.trainingScore = 0
     this._retryLevel = 0
     this._devCode = []
     this.endingSequence = false
@@ -249,6 +250,7 @@ export class Game {
   }
 
   start() {
+    window.__game = this
     this.running = true
     this.startTime = performance.now()
     document.getElementById('blocker').style.display = 'none'
@@ -293,6 +295,7 @@ export class Game {
 
   _startTrainingMode() {
     this.trainingMode = true
+    this.trainingScore = 0
     this.transitioning = true
     this.level = new TrainingRange(this.scene, 'easy', this.trainingEnemy === 'targetDummy')
     this.level.build()
@@ -340,6 +343,14 @@ export class Game {
   _hideEnemyProfile() {
     const el = document.getElementById('enemy-profile')
     if (el) el.style.display = 'none'
+  }
+
+  _updateTrainingScoreDisplay() {
+    const el = document.getElementById('training-score')
+    if (el) {
+      el.textContent = `得分 ${this.trainingScore || 0}`
+      el.style.opacity = '1'
+    }
   }
 
   _spawnTrainingEnemies() {
@@ -1239,6 +1250,8 @@ export class Game {
     document.getElementById('training-exit-btn').style.display = 'none'
     document.getElementById('training-exit-hud').style.display = 'none'
     document.getElementById('training-hint').classList.remove('visible')
+    const ts = document.getElementById('training-score')
+    if (ts) { ts.style.opacity = '0'; ts.textContent = '' }
     this._hideEnemyProfile()
     document.getElementById('difficulty-select').style.display = 'flex'
     if (document.pointerLockElement) document.exitPointerLock()
@@ -1670,6 +1683,7 @@ export class Game {
     this.trainingMode = false
     this.trainingEnemy = null
     this._trainingSpawned = false
+    this.trainingScore = 0
     this._realHealth = 100
     this._realRegenHealed = 0
 

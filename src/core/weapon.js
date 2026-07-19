@@ -212,15 +212,13 @@ class WeaponBase {
       })
       if (hitEnemy && !hitEnemy.dead) {
         const dmgMult = hits[0].distance < 5 ? 1.5 : hits[0].distance < 15 ? 1.0 : 0.7
-        hitEnemy.takeDamage(this.damage * dmgMult)
+        hitEnemy.takeDamage(this.damage * dmgMult, hits[0])
         this.createMuzzleFlash()
         this.createImpactSpark(hits[0].point)
         if (this.audio) this.audio.playHitMarker()
         return true
       }
     }
-
-    this.createMuzzleFlash()
     return false
   }
 
@@ -634,7 +632,7 @@ class BurstRifle extends WeaponBase {
       })
       if (hitEnemy && !hitEnemy.dead) {
         const dmgMult = hits[0].distance < 5 ? 1.3 : hits[0].distance < 15 ? 1.0 : 0.6
-        hitEnemy.takeDamage(this.damage * dmgMult)
+        hitEnemy.takeDamage(this.damage * dmgMult, hits[0])
         this.createImpactSpark(hits[0].point)
         if (this.audio) this.audio.playHitMarker()
       }

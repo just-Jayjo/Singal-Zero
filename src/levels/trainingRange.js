@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { TargetDummy } from '../enemies/targetDummy.js'
+import { DartboardTarget } from '../enemies/dartboardTarget.js'
 
 export class TrainingRange {
   constructor(scene, difficulty = 'easy', noObstacles = false) {
@@ -226,6 +227,17 @@ export class TrainingRange {
       const dummy = new TargetDummy(new THREE.Vector3(t.x, 0.3, t.z), t.moving)
       game.scene.add(dummy.mesh)
       game.enemies.push(dummy)
+    }
+
+    /* 飛鏢靶 */
+    const dartboardPositions = [
+      { x: 12, z: -7 }, { x: 12, z: 7 },
+      { x: 20, z: -6 }, { x: 20, z: 6 },
+    ]
+    for (const t of dartboardPositions) {
+      const db = new DartboardTarget(new THREE.Vector3(t.x, 0.3, t.z))
+      game.scene.add(db.mesh)
+      game.enemies.push(db)
     }
   }
 
