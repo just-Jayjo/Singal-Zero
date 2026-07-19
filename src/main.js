@@ -8,6 +8,10 @@ document.getElementById('blocker').addEventListener('mousedown', (e) => {
   if (e.button !== 0) return
   if (e.target.closest && e.target.closest('#training-exit-btn')) return
   if (game.audio) game.audio.resumeContext()
+  game.lockPointer()
+  if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {})
+  }
   const flash = document.getElementById('blocker').querySelector('.flash')
   if (flash.textContent === '點擊繼續' || flash.textContent === '按任意鍵繼續' || flash.textContent === '點擊開始') {
     if (game.running) {
@@ -15,8 +19,6 @@ document.getElementById('blocker').addEventListener('mousedown', (e) => {
     } else {
       game.restartContinue()
     }
-  } else {
-    game.lockPointer()
   }
 })
 
@@ -28,6 +30,7 @@ document.addEventListener('keydown', (e) => {
     if (flash.textContent === '按任意鍵繼續' || flash.textContent === '點擊繼續' || flash.textContent === '點擊開始') {
       if (e.code === 'Escape') return
       e.preventDefault()
+      game.lockPointer()
       if (game.audio) game.audio.resumeContext()
       if (game.running) {
         game.resumeFromPause()
@@ -43,6 +46,7 @@ document.addEventListener('mousedown', (e) => {
   if (e.target.closest && e.target.closest('#blocker')) return
   if (game.narrative && game.narrative.isActive()) return
   if (!game.running || game.transitioning) return
+  game.lockPointer()
   const blocker = document.getElementById('blocker')
   if (blocker.style.display !== 'none') {
     const flash = blocker.querySelector('.flash')

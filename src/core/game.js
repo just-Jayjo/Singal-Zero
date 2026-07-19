@@ -222,6 +222,9 @@ export class Game {
     this.renderer.domElement.addEventListener('compositionupdate', this._bound.preventComposition)
     this.renderer.domElement.addEventListener('compositionend', this._bound.preventComposition)
     this.renderer.domElement.addEventListener('contextmenu', e => e.preventDefault())
+    this.renderer.domElement.addEventListener('click', () => {
+      if (!document.pointerLockElement) this.lockPointer()
+    })
   }
 
   unlisten() {
@@ -253,6 +256,7 @@ export class Game {
     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {})
     }
+    this.lockPointer()
     this.listen()
     this.kills = 0
     this.shotsFired = 0
