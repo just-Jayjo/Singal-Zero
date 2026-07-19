@@ -465,10 +465,10 @@ export class SignalCore {
     if (this._game && this._game.audio) this._game.audio.playSFX('bossPulse')
     const origin = this.mesh.position.clone()
     origin.y += 0.5
-    const count = 2 + this.phase
+    const count = 2 + this.phase * 2
     const color = 0x00ffff
     const damage = 4 + this.phase
-    const spread = 0.3
+    const spread = 0.6
 
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * spread
@@ -483,7 +483,7 @@ export class SignalCore {
       this.mesh.parent?.add(mesh)
       this._projectiles.push({
         mesh, dir: dir.clone(),
-        speed: 5 + this.phase,
+        speed: 5,
         lifetime: 5.0,
         damage,
         color,

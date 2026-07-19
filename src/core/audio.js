@@ -957,7 +957,7 @@ export class AudioManager {
       osc.type = 'sawtooth'
       osc.frequency.setValueAtTime(80, now)
       osc.frequency.exponentialRampToValueAtTime(40, now + dur)
-      gain.gain.setValueAtTime(0.15, now)
+      gain.gain.setValueAtTime(0.6, now)
       gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
       osc.connect(filter); filter.connect(gain); gain.connect(dest)
       osc.start(now); osc.stop(now + dur)
@@ -974,8 +974,8 @@ export class AudioManager {
       osc.type = 'sawtooth'
       osc.frequency.setValueAtTime(150, now)
       osc.frequency.exponentialRampToValueAtTime(30, now + dur)
-      gain.gain.setValueAtTime(0.25, now)
-      gain.gain.setValueAtTime(0.25, now + 0.1)
+      gain.gain.setValueAtTime(0.8, now)
+      gain.gain.setValueAtTime(0.8, now + 0.1)
       gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
       osc.connect(filter); filter.connect(gain); gain.connect(dest)
       osc.start(now); osc.stop(now + dur)
@@ -987,7 +987,7 @@ export class AudioManager {
       const noise = ctx.createBufferSource()
       noise.buffer = buffer
       const nGain = ctx.createGain()
-      nGain.gain.setValueAtTime(0.08, now + 0.2)
+      nGain.gain.setValueAtTime(0.3, now + 0.2)
       nGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur + 0.2)
       noise.connect(nGain); nGain.connect(dest)
       noise.start(now + 0.2); noise.stop(now + 0.2 + noiseDur)
@@ -1002,7 +1002,7 @@ export class AudioManager {
         osc.type = 'sine'
         osc.frequency.setValueAtTime(100 + i * 50, t)
         osc.frequency.exponentialRampToValueAtTime(200 + i * 80, t + dur)
-        gain.gain.setValueAtTime(0.12, t)
+        gain.gain.setValueAtTime(0.5, t)
         gain.gain.exponentialRampToValueAtTime(0.001, t + dur)
         osc.connect(gain); gain.connect(dest)
         osc.start(t); osc.stop(t + dur)
