@@ -887,7 +887,10 @@ class Grenade extends WeaponBase {
       if (dist < this.explosionRadius) {
         const falloff = 1 - (dist / this.explosionRadius)
         const dmg = Math.floor(this.damage * falloff * 0.5)
-        if (dmg > 0) this.player.takeDamage(dmg)
+        if (dmg > 0) {
+          this.player.takeDamage(dmg)
+          if (this.audio) this.audio.playDamage()
+        }
       }
     }
   }

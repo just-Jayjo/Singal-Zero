@@ -984,6 +984,7 @@ export class Game {
         if (hit) {
           this.player.takeDamage(enemy.damage * this.difficultyModifiers[this.difficulty].damageMultiplier)
           this.hud.showDamage()
+          if (this.audio) this.audio.playDamage()
         }
         this.createEnemyBulletTrail(enemy, hit)
         enemy.shootTimer = enemy.shootCooldown
