@@ -474,12 +474,12 @@ export class SignalCore {
       this.mesh.parent?.add(mesh)
       this._projectiles.push({
         mesh, dir: dir.clone(),
-        speed: 10 + this.phase * 2,
-        lifetime: 4.0,
+        speed: 5 + this.phase,
+        lifetime: 5.0,
         damage,
         color,
         tracking: true,
-        trackStrength: 1.5 + this.phase * 0.5
+        trackStrength: 0.8 + this.phase * 0.2
       })
     }
   }
