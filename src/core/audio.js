@@ -13,10 +13,10 @@ export class AudioManager {
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.85;
+      this.masterGain.gain.value = 1.0;
       this.masterGain.connect(this.ctx.destination);
       this._bgmBoost = this.ctx.createGain();
-      this._bgmBoost.gain.value = 1.8;
+      this._bgmBoost.gain.value = 2.2;
       this._bgmBoost.connect(this.masterGain);
       this.bgmOscillators = null;
       return true;
@@ -158,7 +158,7 @@ export class AudioManager {
     filter.frequency.setValueAtTime(800, t);
     filter.frequency.exponentialRampToValueAtTime(30, t + 0.45);
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(2.5, t);
+    gain.gain.setValueAtTime(3.5, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
     noise.connect(filter);
     filter.connect(gain);
@@ -171,7 +171,7 @@ export class AudioManager {
     boom.frequency.setValueAtTime(60, t);
     boom.frequency.exponentialRampToValueAtTime(15, t + 0.4);
     const boomG = this.ctx.createGain();
-    boomG.gain.setValueAtTime(1.0, t);
+    boomG.gain.setValueAtTime(1.5, t);
     boomG.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
     boom.connect(boomG);
     boomG.connect(this.masterGain);
@@ -203,22 +203,41 @@ export class AudioManager {
 
   playDamage() {
     if (!this._ensureContext()) return;
-    const hitGain = this.ctx.createGain();
-    hitGain.gain.setValueAtTime(0.8, this.ctx.currentTime);
-    hitGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
-    hitGain.connect(this.masterGain);
+    const t = this.ctx.currentTime;
+
+    /* 衝擊噪音 */
+    const bufSize = Math.floor(this.ctx.sampleRate * 0.2);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) d[i] = Math.random() * 2 - 1;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(800, t);
+    bp.frequency.exponentialRampToValueAtTime(200, t + 0.15);
+    bp.Q.value = 0.8;
+    const ng = this.ctx.createGain();
+    ng.gain.setValueAtTime(1.2, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    noise.connect(bp);
+    bp.connect(ng);
+    ng.connect(this.masterGain);
+    noise.start(t);
+    noise.stop(t + 0.2);
+
+    /* 低頻衝擊 */
     const osc = this.ctx.createOscillator();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(80, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.08);
-    const lp = this.ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.setValueAtTime(300, this.ctx.currentTime);
-    lp.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.08);
-    osc.connect(lp);
-    lp.connect(hitGain);
-    osc.start(this.ctx.currentTime);
-    osc.stop(this.ctx.currentTime + 0.12);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    const og = this.ctx.createGain();
+    og.gain.setValueAtTime(1.0, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    osc.connect(og);
+    og.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.18);
   }
 
   playBGMLayer() {
