@@ -15,7 +15,7 @@ export class TargetDummy {
     this._hitFlash = 0
     this._moveDir = new THREE.Vector3(0, 0, 1)
     this._moveRange = 4
-    this._moveSpeed = 2.5
+    this._moveSpeed = 1.25
     this._spawnPos = position.clone()
     this._moveOrigin = position.clone()
     this.createMesh(position)

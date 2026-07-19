@@ -1329,8 +1329,11 @@ export class Game {
       if (e.clearProjectiles) e.clearProjectiles()
     }
     if (this.audio) this.audio.stopBGM()
+    if (this.audio) this.audio.playEndingBGM()
     document.getElementById('hud').style.display = 'none'
-    this.showResults()
+    this.narrative.show(NARRATIVE_ENDING, () => {
+      this.showResults()
+    })
   }
 
   _showFinalEndingOverlay() {
