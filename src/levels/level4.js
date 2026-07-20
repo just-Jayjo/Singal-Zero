@@ -46,17 +46,12 @@ export class Level4 {
     this.buildFloor()
     this.buildPerimeterWalls()
     this.buildCrumbledStructures()
-    this.buildDebrisFields()
     this.buildHangingCables()
     this.buildWarningBarriers()
     this.buildElevatedPlatforms()
     this.buildLighting()
-    this.buildCeilingLights()
-    this.buildFloorGlow()
-    this.buildConduits()
-    this.buildTerminals()
+    this.buildTerrain()
     this.computeCollisionBoxes()
-    this.buildRobotDecorations()
   }
 
   buildSky() {
@@ -240,8 +235,8 @@ export class Level4 {
     })
 
     const sPos = this.isTraining
-      ? [[-12, -12], [12, -12], [-12, 12], [12, 12], [-6, 0], [6, 0]]
-      : [[-8, -8], [8, -8], [-8, 8], [8, 8], [-12, -4], [12, -4], [-4, 12], [4, -12], [12, 8]]
+      ? [[-12, -12], [12, -12], [-12, 12], [12, 12]]
+      : [[-8, -8], [8, -8], [-8, 8], [8, 8]]
 
     for (const [sx, sz] of sPos) {
       const bw = 1.0 + Math.random() * 0.8
@@ -279,33 +274,6 @@ export class Level4 {
     }
   }
 
-  buildDebrisFields() {
-    const debMat = new THREE.MeshStandardMaterial({ color: 0x1a1814, roughness: 0.9, metalness: 0.2 })
-    const debMat2 = new THREE.MeshStandardMaterial({ color: 0x22201a, roughness: 0.8, metalness: 0.3 })
-
-    const positions = this.isTraining
-      ? [[-10, -8], [8, 10], [-12, 12], [12, -10], [0, -14], [14, 0]]
-      : [[-8, -6], [6, 8], [-10, 10], [10, -8], [-8, -12], [12, 8], [-12, 4], [4, -12], [-4, 14], [14, -4]]
-
-    for (const [dx, dz] of positions) {
-      const count = 4 + Math.floor(Math.random() * 4)
-      for (let i = 0; i < count; i++) {
-        const size = 0.1 + Math.random() * 0.35
-        const frag = new THREE.Mesh(
-          new THREE.BoxGeometry(size, size * 0.4 + Math.random() * 0.1, size * (0.5 + Math.random() * 0.5)),
-          Math.random() > 0.5 ? debMat : debMat2
-        )
-        frag.position.set(
-          dx + (Math.random() - 0.5) * 2.0,
-          size * 0.2 + 0.01,
-          dz + (Math.random() - 0.5) * 2.0
-        )
-        frag.rotation.set(Math.random() * 0.5, Math.random() * Math.PI, Math.random() * 0.5)
-        this.scene.add(frag); this.decorations.push(frag)
-      }
-    }
-  }
-
   buildHangingCables() {
     const cableMat = new THREE.MeshStandardMaterial({ color: 0x1a1814, roughness: 0.8, metalness: 0.3 })
     const sparkMat = new THREE.MeshStandardMaterial({
@@ -314,7 +282,7 @@ export class Level4 {
 
     const cablePositions = this.isTraining
       ? [[-8, 5.0, -8], [8, 5.0, 8]]
-      : [[-10, 5.0, -10], [10, 5.0, -10], [-10, 5.0, 10], [10, 5.0, 10]]
+      : [[-10, 5.0, -10], [10, 5.0, 10]]
 
     for (const [cx, cy, cz] of cablePositions) {
       const segs = 4 + Math.floor(Math.random() * 4)
@@ -352,7 +320,7 @@ export class Level4 {
 
     const bPos = this.isTraining
       ? [[-14, -14], [14, 14], [-14, 14], [14, -14]]
-      : [[-10, -10], [10, 10], [-10, 10], [10, -10], [-14, -6], [14, 6], [-6, 14]]
+      : [[-10, -10], [10, 10], [-10, 10], [10, -10]]
 
     for (const [bx, bz] of bPos) {
       const barrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.05), barrierMat)
@@ -532,27 +500,42 @@ export class Level4 {
     }
   }
 
-  buildRobotDecorations() {
-    const robotModel = this.assets?.models.get('sci-fi_turret_animated_by_get3dmodels')
-    if (!robotModel) return
+  buildTerrain() {
+    const raisedMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.5, metalness: 0.7 })
+    const pitMat = new THREE.MeshStandardMaterial({ color: 0x1a1814, roughness: 0.8, metalness: 0.3 })
+    const glowMat = new THREE.MeshStandardMaterial({
+      color: C.amber, emissive: C.amber,
+      emissiveIntensity: this.isHard ? 0.12 : 0.25, transparent: true, opacity: 0.2
+    })
 
-    const rScale = this.isTraining ? 1.0 : 0.7
-    const positions = this.isTraining
-      ? [[-14, 0, 0], [14, 0, 0], [0, 0, -14], [0, 0, 14]]
-      : [[-10, 0, 0], [10, 0, 0], [0, 0, 10], [-8, 0, 8], [8, 0, -8]]
+    const raisedPositions = this.isTraining
+      ? [[-10, -10], [10, -10], [-10, 10], [10, 10]]
+      : [[-6, -6], [6, -6], [-6, 6], [6, 6]]
 
-    for (const [rx, _, rz] of positions) {
-      if (this.checkCollision(new THREE.Vector3(rx, 0, rz), 0.8)) continue
-      const inst = robotModel.clone()
-      inst.scale.setScalar(rScale)
-      inst.position.set(rx, 0.01, rz)
-      inst.rotation.y = Math.random() * Math.PI * 2
-      inst.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true } })
-      this.scene.add(inst); this.decorations.push(inst)
-      this.collisionBoxes.push(new THREE.Box3(
-        new THREE.Vector3(rx - 0.5, 0, rz - 0.5),
-        new THREE.Vector3(rx + 0.5, 1.2, rz + 0.5)
-      ))
+    for (const [tx, tz] of raisedPositions) {
+      const plat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 2.5), raisedMat)
+      plat.position.set(tx, 0.3, tz)
+      plat.castShadow = true; plat.receiveShadow = true
+      this.scene.add(plat); this.decorations.push(plat)
+
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.02, 2.58), glowMat)
+      strip.position.set(tx, 0.61, tz)
+      this.scene.add(strip); this.decorations.push(strip)
+    }
+
+    const pitPositions = this.isTraining
+      ? [[-12, 0], [12, 0]]
+      : [[-10, 0], [10, 0]]
+
+    for (const [px, pz] of pitPositions) {
+      const pit = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 2.5), pitMat)
+      pit.position.set(px, -0.25, pz)
+      pit.receiveShadow = true
+      this.scene.add(pit); this.decorations.push(pit)
+
+      const rim = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.02, 2.6), glowMat)
+      rim.position.set(px, 0.01, pz)
+      this.scene.add(rim); this.decorations.push(rim)
     }
   }
 
@@ -584,70 +567,6 @@ export class Level4 {
       const extra = new THREE.PointLight(lc, li * 0.6, 14)
       extra.position.set(x, y, z); this.scene.add(extra)
       this.lights.push(extra); this.flickerLights.push(extra)
-    }
-  }
-
-  buildCeilingLights() {
-    const gc = 0xffb800
-    const eI = this.isHard ? 0.15 : 0.3
-    const wireMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, metalness: 0.8, roughness: 0.3 })
-    const fixMat = new THREE.MeshStandardMaterial({ color: 0x2a2018, metalness: 0.7, roughness: 0.4 })
-    const glowMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 2 })
-    const h = this.halfSize - 1
-    for (const [px, pz] of [[-h * 0.6, -h * 0.6], [h * 0.6, -h * 0.6], [-h * 0.6, h * 0.6], [h * 0.6, h * 0.6]]) {
-      const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 4), wireMat)
-      wire.position.set(px, 5.7, pz); this.scene.add(wire); this.decorations.push(wire)
-      const fix = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.12), fixMat)
-      fix.position.set(px, 5.4, pz); this.scene.add(fix); this.decorations.push(fix)
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), glowMat)
-      glow.position.set(px, 5.35, pz); this.scene.add(glow); this.decorations.push(glow)
-    }
-  }
-
-  buildFloorGlow() {
-    const gc = 0xff8800
-    const eI = this.isHard ? 0.06 : 0.12
-    const stripMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, transparent: true, opacity: 0.06 })
-    const h = this.halfSize - 1
-    for (const [x, z, w, d] of [[0, -h * 0.7, h * 0.4, 0.025], [0, h * 0.7, h * 0.4, 0.025], [-h * 0.7, 0, 0.025, h * 0.4], [h * 0.7, 0, 0.025, h * 0.4]]) {
-      const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.005, d), stripMat)
-      strip.position.set(x, 0.015, z); this.scene.add(strip); this.floorMeshes.push(strip)
-    }
-  }
-
-  buildConduits() {
-    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, metalness: 0.8, roughness: 0.3 })
-    const jointMat = new THREE.MeshStandardMaterial({ color: C.warning, emissive: C.warning, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.15 })
-    const h = this.halfSize - 1
-    const placements = [[-h, -h * 0.4], [h, -h * 0.4], [-h, h * 0.4], [h, h * 0.4]]
-    for (const [px, pz] of placements) {
-      const dir = Math.random() > 0.5 ? 'x' : 'z'
-      for (let i = 0; i < 5; i++) {
-        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.25, 6), pipeMat)
-        seg.position.set(dir === 'x' ? px + (i - 2) * 0.3 : px + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 2, dir === 'z' ? pz + (i - 2) * 0.3 : pz + (Math.random() - 0.5) * 1.5)
-        seg.rotation.z = dir === 'x' ? Math.PI / 2 : 0; this.scene.add(seg); this.decorations.push(seg)
-        if (i % 3 === 0) {
-          const joint = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 6, 8), jointMat)
-          joint.position.copy(seg.position); joint.rotation.x = Math.PI / 2; this.scene.add(joint); this.decorations.push(joint)
-        }
-      }
-    }
-  }
-
-  buildTerminals() {
-    const bodyMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.4, metalness: 0.7 })
-    const screenMat = new THREE.MeshStandardMaterial({ color: C.warning, emissive: C.warning, emissiveIntensity: 0.5 })
-    const n = this.isTraining ? 4 : 2
-    const r = this.halfSize - 2
-    for (let i = 0; i < n; i++) {
-      const angle = (i / n) * Math.PI * 2 + 0.3
-      const tx = Math.cos(angle) * r; const tz = Math.sin(angle) * r
-      const rot = -angle + Math.PI
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.2), bodyMat)
-      body.position.set(tx, 0.4, tz); this.scene.add(body); this.decorations.push(body)
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.15), screenMat)
-      screen.position.set(tx + 0.11 * Math.sin(rot), 0.6, tz + 0.11 * Math.cos(rot))
-      screen.rotation.y = rot; this.scene.add(screen); this.decorations.push(screen)
     }
   }
 

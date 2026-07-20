@@ -6,17 +6,17 @@ export class ShieldGuardian extends PatrolBot {
   constructor(position) {
     super(position)
     this.type = 'shieldGuardian'
-    this.hp = 1000
-    this.maxHp = 1000
-    this.speed = 2.5
-    this.damage = 6
-    this.shootCooldown = 1.8
+    this.hp = 800
+    this.maxHp = 800
+    this.speed = 2.2
+    this.damage = 5
+    this.shootCooldown = 2.2
     this.shootTimer = 2.0
     this.detectionRange = 30
     this.radius = 1.2
     this.shieldActive = false
-    this._shieldActivateTimer = 6
-    this._shieldDuration = 5
+    this._shieldActivateTimer = 8
+    this._shieldDuration = 4
     this._shieldActiveTimer = 0
     this._shieldMesh = null
     this._shieldDir = new THREE.Vector3(0, 0, 1)
@@ -271,7 +271,7 @@ export class ShieldGuardian extends PatrolBot {
       this._shieldActiveTimer -= 0.016
       if (this._shieldActiveTimer <= 0) {
         this.shieldActive = false
-        this._shieldActivateTimer = 8 + Math.random() * 4
+        this._shieldActivateTimer = 10 + Math.random() * 4
         if (this._shieldMesh) {
           this._shieldMesh.material.opacity = 0.02
           this._shieldMesh.material.emissiveIntensity = 0.1
@@ -367,9 +367,9 @@ export class ShieldGuardian extends PatrolBot {
     if (ratio <= 0.5 && !this._enraged) {
       this._enraged = true
       this.phase = 2
-      this.speed = 3.2
-      this.shootCooldown = 1.2
-      this.damage = 9
+      this.speed = 2.8
+      this.shootCooldown = 1.5
+      this.damage = 7
       if (this._coreMesh) {
         this._coreMesh.material.emissiveIntensity = 4.0
       }
@@ -383,7 +383,7 @@ export class ShieldGuardian extends PatrolBot {
     if (this.dead) return
     if (this.shieldActive) {
       this.shieldActive = false
-      this._shieldActivateTimer = 8 + Math.random() * 4
+      this._shieldActivateTimer = 10 + Math.random() * 4
       this._hideShieldHint()
       if (this._shieldMesh) {
         this._shieldMesh.material.opacity = 0.02
@@ -394,9 +394,9 @@ export class ShieldGuardian extends PatrolBot {
       if (ratio <= 0.5 && !this._enraged) {
         this._enraged = true
         this.phase = 2
-        this.speed = 3.2
-        this.shootCooldown = 1.2
-        this.damage = 9
+        this.speed = 2.8
+        this.shootCooldown = 1.5
+        this.damage = 7
         if (this._coreMesh) this._coreMesh.material.emissiveIntensity = 4.0
       }
       if (this.hp <= 0) this.die()
@@ -514,7 +514,7 @@ export class ShieldGuardian extends PatrolBot {
       this.chase(delta, player.camera.position, level)
 
       if (this._slamCooldown <= 0 && playerDist < 7) {
-        this._slamCooldown = this._enraged ? 5.0 : 6.0
+        this._slamCooldown = this._enraged ? 6.0 : 8.0
         this._groundSlam(player)
       }
 
@@ -563,7 +563,7 @@ export class ShieldGuardian extends PatrolBot {
       }
 
       if (this._summonCooldown <= 0) {
-        this._summonCooldown = this._enraged ? 10.0 : 10.0
+        this._summonCooldown = this._enraged ? 12.0 : 14.0
         this._summonMinions()
       }
     } else if (this.state === 'chase') {
@@ -708,7 +708,7 @@ export class ShieldGuardian extends PatrolBot {
 
   _summonMinions() {
     if (!this._game || !this._game.scene || !this._game.enemies) return
-    const count = 2
+    const count = 1
     for (let i = 0; i < count; i++) {
       const pos = new THREE.Vector3(
         this.mesh.position.x + (Math.random() - 0.5) * 6,
@@ -764,7 +764,7 @@ export class ShieldGuardian extends PatrolBot {
 
         const slamDist = player.camera.position.distanceTo(this.mesh.position)
         if (slamDist < 6 && (!player._isAirborne)) {
-          player.takeDamage(this._enraged ? 8 : 5)
+          player.takeDamage(this._enraged ? 6 : 4)
         }
 
         const expMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.3, side: THREE.DoubleSide })

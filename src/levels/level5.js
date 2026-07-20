@@ -49,10 +49,7 @@ export class Level5 {
     this.buildRitualPlatform()
     this.buildFloorSigils()
     this.buildLighting()
-    this.buildCeilingLights()
-    this.buildFloorGlow()
-    this.buildConduits()
-    this.buildTerminals()
+    this.buildTerraces()
     this.computeCollisionBoxes()
   }
 
@@ -158,29 +155,6 @@ export class Level5 {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(this.size + 4, this.size + 4), floorMat)
     floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; floor.receiveShadow = true
     this.scene.add(floor); this.floorMeshes.push(floor)
-  }
-
-  buildTerrain() {
-    const rampMat = new THREE.MeshStandardMaterial({ color: C.floor, roughness: 0.6, metalness: 0.6 })
-    const platMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.5, metalness: 0.7 })
-    const edgeMat = new THREE.MeshStandardMaterial({ color: C.red, emissive: C.red, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.2 })
-    const ramps = this.isTraining ? [[-12,0.5,-12],[12,0.5,12],[-12,0.5,12],[12,0.5,-12]] : [[-9,0.4,-9],[9,0.4,9],[-9,0.4,9],[9,0.4,-9]]
-    for (const [rx, rh, rz] of ramps) {
-      const ramp = new THREE.Mesh(new THREE.BoxGeometry(2.0, rh, 1.0), rampMat)
-      ramp.position.set(rx, rh/2, rz); ramp.rotation.x = 0.15
-      ramp.castShadow = true; ramp.receiveShadow = true
-      this.scene.add(ramp); this.decorations.push(ramp)
-    }
-    const platforms = this.isTraining ? [[-14,0.6,0,3],[14,0.6,0,3],[0,0.6,-14,3],[0,0.6,14,3]] : [[-11,0.5,0,2.5],[11,0.5,0,2.5],[0,0.5,-11,2.5],[0,0.5,11,2.5]]
-    for (const [px, ph, pz, ps] of platforms) {
-      const plat = new THREE.Mesh(new THREE.BoxGeometry(ps, ph, ps), platMat)
-      plat.position.set(px, ph/2, pz)
-      plat.receiveShadow = true; plat.castShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
-      const lip = new THREE.Mesh(new THREE.BoxGeometry(ps+0.1, 0.03, ps+0.1), edgeMat)
-      lip.position.set(px, ph+0.015, pz)
-      this.scene.add(lip); this.decorations.push(lip)
-    }
   }
 
   buildPerimeterWalls() {
@@ -378,44 +352,6 @@ export class Level5 {
     }
   }
 
-  buildMonoliths() {
-    const monMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
-    const runeMat = new THREE.MeshStandardMaterial({
-      color: C.red, emissive: C.red,
-      emissiveIntensity: this.isHard ? 0.3 : 0.6,
-      transparent: true, opacity: 0.3
-    })
-
-    const count = this.isTraining ? 4 : 6
-    const r = this.halfSize * 0.6
-
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + 0.3
-      const mx = Math.cos(angle) * r
-      const mz = Math.sin(angle) * r
-
-      const mw = this.isTraining ? 1.0 : 0.7
-      const mh = this.isTraining ? 3.5 : 3.0
-
-      const body = new THREE.Mesh(new THREE.BoxGeometry(mw, mh, 0.4), monMat)
-      body.position.set(mx, mh / 2, mz)
-      body.castShadow = true
-      this.scene.add(body)
-      this.walls.push(body)
-      this.decorations.push(body)
-
-      const rune = new THREE.Mesh(new THREE.PlaneGeometry(mw * 0.6, mh * 0.5), runeMat)
-      rune.position.set(
-        mx + 0.21 * Math.cos(angle),
-        mh / 2,
-        mz + 0.21 * Math.sin(angle)
-      )
-      rune.rotation.y = -angle
-      this.scene.add(rune)
-      this.decorations.push(rune)
-    }
-  }
-
   buildFloorSigils() {
     const sigilMat = new THREE.MeshStandardMaterial({
       color: C.pulse, emissive: C.pulse,
@@ -438,241 +374,6 @@ export class Level5 {
       )
       this.scene.add(ring)
       this.floorMeshes.push(ring)
-    }
-  }
-
-  buildHeightFeatures() {
-    const platMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.4, metalness: 0.8 })
-    const rampMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.5, metalness: 0.6 })
-    const edgeMat = new THREE.MeshStandardMaterial({ color: C.red, emissive: C.red, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.2 })
-
-    const elevated = [
-      { x: -13, z: -13, w: 2.0, h: 0.9, s: 2.0 },
-      { x: 13, z: 13, w: 2.0, h: 0.9, s: 2.0 },
-      { x: -13, z: 13, w: 2.0, h: 0.7, s: 1.5 },
-      { x: 13, z: -13, w: 2.0, h: 0.7, s: 1.5 }
-    ]
-    for (const e of elevated) {
-      const plat = new THREE.Mesh(new THREE.BoxGeometry(e.w, e.h, e.s), platMat)
-      plat.position.set(e.x, e.h / 2, e.z)
-      plat.receiveShadow = true; plat.castShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
-      const lip = new THREE.Mesh(new THREE.BoxGeometry(e.w + 0.1, 0.03, e.s + 0.1), edgeMat)
-      lip.position.set(e.x, e.h + 0.015, e.z)
-      this.scene.add(lip); this.decorations.push(lip)
-      for (let side = 0; side < 4; side++) {
-        const angle = (side / 4) * Math.PI * 2
-        const stair = new THREE.Mesh(new THREE.BoxGeometry(0.25, e.h * 0.5, 0.25), rampMat)
-        stair.position.set(
-          e.x + Math.sin(angle) * (e.w / 2 + 0.25),
-          e.h * 0.25,
-          e.z + Math.cos(angle) * (e.s / 2 + 0.25)
-        )
-        this.scene.add(stair); this.decorations.push(stair)
-      }
-    }
-
-    const pillars = []
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4
-      const r = this.halfSize * 0.5
-      pillars.push({ x: Math.cos(angle) * r, z: Math.sin(angle) * r })
-    }
-    for (const p of pillars) {
-      for (let layer = 0; layer < 3; layer++) {
-        const debris = new THREE.Mesh(
-          new THREE.BoxGeometry(0.3 + Math.random() * 0.4, 0.1 + Math.random() * 0.15, 0.3 + Math.random() * 0.4),
-          rampMat
-        )
-        debris.position.set(
-          p.x + (Math.random() - 0.5) * 0.5,
-          0.05 + layer * 0.15,
-          p.z + (Math.random() - 0.5) * 0.5
-        )
-        debris.rotation.set(Math.random() * 0.3, Math.random() * 0.3, 0)
-        this.scene.add(debris); this.decorations.push(debris)
-      }
-    }
-  }
-
-  buildElevatedPlatforms() {
-    const gc = C.red
-    const eI = this.isHard ? 0.25 : 0.4
-    const platMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.5, metalness: 0.7 })
-    const edgeMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, transparent: true, opacity: 0.35 })
-    const stairMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.6, metalness: 0.5 })
-    const railMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: this.isHard ? 0.25 : 0.5, transparent: true, opacity: 0.2 })
-    const supMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
-    const stripMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 0.6, transparent: true, opacity: 0.15 })
-    const glowMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 1.2 })
-    const dimMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.06 })
-    const trimMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.4, metalness: 0.8 })
-    const boltMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, metalness: 0.9, roughness: 0.2 })
-
-    const positions = this.isTraining
-      ? [[-12, 3.0, -12, 2.5], [12, 3.0, -12, 2.5], [-12, 3.0, 12, 2.5], [12, 3.0, 12, 2.5]]
-      : [[-9, 3.0, -9, 2], [9, 3.0, -9, 2], [-9, 3.0, 9, 2], [9, 3.0, 9, 2],
-         [-16, 2.5, -7, 1.8], [16, 2.5, 7, 1.8], [-7, 2.5, -16, 1.8], [7, 2.5, 16, 1.8]]
-
-    for (const [px, ph, pz, ps] of positions) {
-      const hs = ps / 2
-
-      const plat = new THREE.Mesh(new THREE.BoxGeometry(ps, ph, ps), platMat)
-      plat.position.set(px, ph / 2, pz)
-      plat.castShadow = true; plat.receiveShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
-      this.elevatedPlatforms.push({ position: new THREE.Vector3(px, ph, pz), size: ps })
-
-      const ew = 0.03
-      for (const [ex, ez] of [[-hs, 0], [hs, 0]]) {
-        const xw = ex !== 0 ? ew : ps; const zw = ex !== 0 ? ps : ew
-        this.collisionBoxes.push(new THREE.Box3(
-          new THREE.Vector3(px + ex - xw / 2, 0, pz + ez - zw / 2),
-          new THREE.Vector3(px + ex + xw / 2, ph, pz + ez + zw / 2)
-        ))
-      }
-
-      const lip = new THREE.Mesh(new THREE.BoxGeometry(ps + 0.08, 0.04, ps + 0.08), edgeMat)
-      lip.position.set(px, ph + 0.02, pz)
-      this.scene.add(lip); this.decorations.push(lip)
-
-      const band = new THREE.Mesh(new THREE.BoxGeometry(ps + 0.04, 0.03, ps + 0.04), dimMat)
-      band.position.set(px, ph * 0.5, pz)
-      this.scene.add(band); this.decorations.push(band)
-
-      const pOff = ps * 0.4
-      for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
-        const cx = px + sx * pOff; const cz = pz + sz * pOff
-
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.1, ph, 0.1), supMat)
-        pillar.position.set(cx, ph / 2, cz)
-        pillar.castShadow = true
-        this.scene.add(pillar); this.decorations.push(pillar)
-        this.collisionBoxes.push(new THREE.Box3(
-          new THREE.Vector3(cx - 0.06, 0, cz - 0.06),
-          new THREE.Vector3(cx + 0.06, ph, cz + 0.06)
-        ))
-
-        for (const [fx, fz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-          const fl = new THREE.Mesh(
-            new THREE.BoxGeometry(fx !== 0 ? 0.004 : 0.07, ph * 0.6, fz !== 0 ? 0.004 : 0.07),
-            dimMat
-          )
-          fl.position.set(cx + fx * 0.055, ph * 0.5, cz + fz * 0.055)
-          this.scene.add(fl); this.decorations.push(fl)
-        }
-
-        const cap = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.13), trimMat)
-        cap.position.set(cx, ph - 0.02, cz)
-        this.scene.add(cap); this.decorations.push(cap)
-
-        const base = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.13), trimMat)
-        base.position.set(cx, 0.02, cz)
-        this.scene.add(base); this.decorations.push(base)
-
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.015, 6, 8), edgeMat)
-        ring.position.set(cx, 0.015, cz)
-        ring.rotation.x = Math.PI / 2
-        this.scene.add(ring); this.decorations.push(ring)
-
-        const vStrip = new THREE.Mesh(new THREE.BoxGeometry(0.015, ph * 0.6, 0.015), stripMat)
-        vStrip.position.set(cx, ph * 0.5, cz)
-        this.scene.add(vStrip); this.decorations.push(vStrip)
-
-        const topLight = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), glowMat)
-        topLight.position.set(cx, ph, cz)
-        this.scene.add(topLight); this.decorations.push(topLight)
-
-        for (const [bx, bz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-          const bolt = new THREE.Mesh(new THREE.SphereGeometry(0.008, 4, 4), boltMat)
-          bolt.position.set(cx + bx * 0.055, ph * 0.5, cz + bz * 0.055)
-          this.scene.add(bolt); this.decorations.push(bolt)
-        }
-      }
-
-      for (const [sx, sz] of [[-hs, 0], [hs, 0], [0, -hs], [0, hs]]) {
-        const ix = sx !== 0
-        const rL = ix ? ps * 0.82 : 0.03; const rW = ix ? 0.03 : ps * 0.82
-
-        const tR = new THREE.Mesh(new THREE.BoxGeometry(rL, 0.03, rW), railMat)
-        tR.position.set(px + sx, ph + 0.32, pz + sz)
-        this.scene.add(tR); this.decorations.push(tR)
-        if (ix) this.collisionBoxes.push(new THREE.Box3(
-          new THREE.Vector3(px + sx - 0.02, ph + 0.3, pz + sz - ps * 0.41),
-          new THREE.Vector3(px + sx + 0.02, ph + 0.35, pz + sz + ps * 0.41)
-        ))
-
-        const bR = new THREE.Mesh(new THREE.BoxGeometry(rL, 0.025, rW), railMat)
-        bR.position.set(px + sx, ph + 0.1, pz + sz)
-        this.scene.add(bR); this.decorations.push(bR)
-
-        const eStrip = new THREE.Mesh(new THREE.BoxGeometry(ix ? 0.015 : ps * 0.78, 0.2, ix ? ps * 0.78 : 0.015), stripMat)
-        eStrip.position.set(px + sx * (ix ? 1 : 0.05), ph * 0.4, pz + sz * (ix ? 0.05 : 1))
-        this.scene.add(eStrip); this.decorations.push(eStrip)
-
-        const nP = Math.max(2, Math.floor(ps / 0.6))
-        for (let i = 0; i <= nP; i++) {
-          const t = (i / nP - 0.5) * ps * (ix ? 0 : 0.82)
-          const post = new THREE.Mesh(new THREE.BoxGeometry(ix ? 0.02 : 0.035, 0.25, ix ? 0.035 : 0.02), railMat)
-          post.position.set(px + sx + (ix ? 0 : t), ph + 0.2, pz + sz + (ix ? t : 0))
-          this.scene.add(post); this.decorations.push(post)
-          this.collisionBoxes.push(new THREE.Box3(
-            new THREE.Vector3(post.position.x - (ix ? 0.012 : 0.02), ph, post.position.z - (ix ? 0.02 : 0.012)),
-            new THREE.Vector3(post.position.x + (ix ? 0.012 : 0.02), ph + 0.26, post.position.z + (ix ? 0.02 : 0.012))
-          ))
-        }
-      }
-
-      for (const sm of [-1, 1]) {
-        const nS = Math.ceil(ph / 0.4)
-        let stepMinZ = 0; let stepMaxZ = 0
-        for (let i = 0; i < nS; i++) {
-          const stepZ = pz + sm * (hs + (nS - 1 - i + 0.5) * 0.3)
-          const stepY = 0.06 + (i / nS) * ph
-          const step = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.12, 0.3), stairMat)
-          step.position.set(px, stepY, stepZ)
-          step.receiveShadow = true
-          this.scene.add(step); this.decorations.push(step)
-          const sGlow = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.015, 0.02), glowMat)
-          sGlow.position.set(px, stepY + 0.07, stepZ + sm * 0.15)
-          this.scene.add(sGlow); this.decorations.push(sGlow)
-          if (i === 0) stepMinZ = stepZ
-          if (i === nS - 1) stepMaxZ = stepZ
-        }
-        if (nS > 0) {
-          this.stairAreas.push({
-            cx: px, cy: ph,
-            cz: (stepMinZ + stepMaxZ) / 2,
-            hw: 0.85 / 2 + 0.1,
-            hd: Math.abs(stepMaxZ - stepMinZ) / 2 + 0.25,
-            platformZ: stepMaxZ, groundZ: stepMinZ, direction: sm
-          })
-        }
-      }
-    }
-  }
-
-  buildRobotDecorations() {
-    const robotModel = this.assets?.models.get('sci-fi_turret_animated_by_get3dmodels')
-    if (!robotModel) return
-
-    const rScale = this.isTraining ? 1.0 : 0.7
-    const positions = this.isTraining
-      ? [[-16, 0, 0], [16, 0, 0], [0, 0, -16], [0, 0, 16]]
-      : [[-12, 0, 0], [12, 0, 0], [0, 0, -12], [0, 0, 12], [-10, 0, 10], [10, 0, -10]]
-
-    for (const [rx, _, rz] of positions) {
-      if (this.checkCollision(new THREE.Vector3(rx, 0, rz), 0.8)) continue
-      const inst = robotModel.clone()
-      inst.scale.setScalar(rScale)
-      inst.position.set(rx, 0.01, rz)
-      inst.rotation.y = Math.random() * Math.PI * 2
-      inst.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true } })
-      this.scene.add(inst); this.decorations.push(inst)
-      this.collisionBoxes.push(new THREE.Box3(
-        new THREE.Vector3(rx - 0.5, 0, rz - 0.5),
-        new THREE.Vector3(rx + 0.5, 1.2, rz + 0.5)
-      ))
     }
   }
 
@@ -707,67 +408,33 @@ export class Level5 {
     }
   }
 
-  buildCeilingLights() {
-    const gc = 0xff2222
-    const eI = this.isHard ? 0.12 : 0.25
-    const wireMat = new THREE.MeshStandardMaterial({ color: 0x1a0a0e, metalness: 0.8, roughness: 0.3 })
-    const fixMat = new THREE.MeshStandardMaterial({ color: 0x2a1018, metalness: 0.7, roughness: 0.4 })
-    const glowMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 2 })
-    const h = this.halfSize - 1
-    for (const [px, pz] of [[-h * 0.6, -h * 0.6], [h * 0.6, -h * 0.6], [-h * 0.6, h * 0.6], [h * 0.6, h * 0.6]]) {
-      const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 4), wireMat)
-      wire.position.set(px, 4.9, pz); this.scene.add(wire); this.decorations.push(wire)
-      const fix = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.12), fixMat)
-      fix.position.set(px, 4.6, pz); this.scene.add(fix); this.decorations.push(fix)
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), glowMat)
-      glow.position.set(px, 4.55, pz); this.scene.add(glow); this.decorations.push(glow)
-    }
-  }
+  buildTerraces() {
+    const platMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.4, metalness: 0.7 })
+    const edgeMat = new THREE.MeshStandardMaterial({ color: C.red, emissive: C.red, emissiveIntensity: this.isHard ? 0.2 : 0.4, transparent: true, opacity: 0.3 })
+    const rampMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.5, metalness: 0.6 })
 
-  buildFloorGlow() {
-    const gc = 0xff2222
-    const eI = this.isHard ? 0.06 : 0.12
-    const stripMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, transparent: true, opacity: 0.06 })
-    const h = this.halfSize - 1
-    for (const [x, z, w, d] of [[0, -h * 0.7, h * 0.4, 0.025], [0, h * 0.7, h * 0.4, 0.025], [-h * 0.7, 0, 0.025, h * 0.4], [h * 0.7, 0, 0.025, h * 0.4]]) {
-      const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.005, d), stripMat)
-      strip.position.set(x, 0.015, z); this.scene.add(strip); this.floorMeshes.push(strip)
-    }
-  }
+    const positions = [[-8, -8], [8, -8], [-8, 8], [8, 8]]
 
-  buildConduits() {
-    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x1a0a0e, metalness: 0.8, roughness: 0.3 })
-    const jointMat = new THREE.MeshStandardMaterial({ color: C.red, emissive: C.red, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.15 })
-    const h = this.halfSize - 1
-    const placements = [[-h, -h * 0.4], [h, -h * 0.4], [-h, h * 0.4], [h, h * 0.4]]
-    for (const [px, pz] of placements) {
-      const dir = Math.random() > 0.5 ? 'x' : 'z'
-      for (let i = 0; i < 5; i++) {
-        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.25, 6), pipeMat)
-        seg.position.set(dir === 'x' ? px + (i - 2) * 0.3 : px + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 2, dir === 'z' ? pz + (i - 2) * 0.3 : pz + (Math.random() - 0.5) * 1.5)
-        seg.rotation.z = dir === 'x' ? Math.PI / 2 : 0; this.scene.add(seg); this.decorations.push(seg)
-        if (i % 3 === 0) {
-          const joint = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 6, 8), jointMat)
-          joint.position.copy(seg.position); joint.rotation.x = Math.PI / 2; this.scene.add(joint); this.decorations.push(joint)
-        }
+    for (const [x, z] of positions) {
+      const plat = new THREE.Mesh(new THREE.BoxGeometry(3, 0.5, 3), platMat)
+      plat.position.set(x, 0.25, z)
+      plat.receiveShadow = true
+      plat.castShadow = true
+      this.scene.add(plat)
+      this.decorations.push(plat)
+
+      const lip = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.03, 3.1), edgeMat)
+      lip.position.set(x, 0.515, z)
+      this.scene.add(lip)
+      this.decorations.push(lip)
+
+      for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        const ramp = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.08, 0.8), rampMat)
+        ramp.position.set(x + dx * 2.0, 0.04, z + dz * 2.0)
+        ramp.rotation.x = 0.15
+        this.scene.add(ramp)
+        this.decorations.push(ramp)
       }
-    }
-  }
-
-  buildTerminals() {
-    const bodyMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.4, metalness: 0.7 })
-    const screenMat = new THREE.MeshStandardMaterial({ color: C.red, emissive: C.red, emissiveIntensity: 0.5 })
-    const n = this.isTraining ? 4 : 2
-    const r = this.halfSize - 2
-    for (let i = 0; i < n; i++) {
-      const angle = (i / n) * Math.PI * 2 + 0.3
-      const tx = Math.cos(angle) * r; const tz = Math.sin(angle) * r
-      const rot = -angle + Math.PI
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.2), bodyMat)
-      body.position.set(tx, 0.4, tz); this.scene.add(body); this.decorations.push(body)
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.15), screenMat)
-      screen.position.set(tx + 0.11 * Math.sin(rot), 0.6, tz + 0.11 * Math.cos(rot))
-      screen.rotation.y = rot; this.scene.add(screen); this.decorations.push(screen)
     }
   }
 

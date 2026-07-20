@@ -49,16 +49,8 @@ export class Level1 {
     this.buildPerimeterWalls()
     this.buildSupportColumns()
     this.buildCentralPlatform()
-    this.buildCorridorWalls()
-    this.buildBunkers()
-    this.buildStackedCrates()
     this.buildElevatedPlatforms()
-    this.buildRobotDecorations()
     this.buildLighting()
-    this.buildConduits()
-    this.buildTerminals()
-    this.buildCeilingLights()
-    this.buildFloorGlow()
     this.computeCollisionBoxes()
   }
 
@@ -199,7 +191,7 @@ export class Level1 {
     this.floorMeshes.push(floor)
   }
 
-  /* ── 地形起伏（斜坡 + 高台）── */
+  /* ── 地形起伏（高台 + 凹坑）── */
   buildTerrain() {
     const rampMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.5, metalness: 0.75 })
     const platMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.45, metalness: 0.8 })
@@ -211,48 +203,71 @@ export class Level1 {
       color: C.cyan, emissive: C.cyan,
       emissiveIntensity: this.isHard ? 0.4 : 0.8, transparent: true, opacity: 0.25
     })
+    const pitMat = new THREE.MeshStandardMaterial({ color: 0x0a1420, roughness: 0.7, metalness: 0.3 })
 
-    const ramps = this.isTraining
-      ? [[-20, 0.5, -20], [20, 0.5, 20], [-20, 0.5, 20], [20, 0.5, -20]]
-      : [[-12, 0.4, -12], [12, 0.4, 12], [-12, 0.4, 12], [12, 0.4, -12]]
+    const pPos = this.isTraining
+      ? [[-16, 0.8, -16], [16, 0.8, -16], [-16, 0.8, 16], [16, 0.8, 16]]
+      : [[-10, 0.8, -10], [10, 0.8, -10], [-10, 0.8, 10], [10, 0.8, 10]]
+    const pSize = this.isTraining ? 6 : 4
 
-    for (const [rx, rh, rz] of ramps) {
-      const rampLen = 2.0
-      const ramp = new THREE.Mesh(new THREE.BoxGeometry(rampLen, rh, 1.0), rampMat)
-      ramp.position.set(rx, rh / 2, rz)
-      ramp.rotation.x = 0.15
-      ramp.castShadow = true
-      ramp.receiveShadow = true
-      this.scene.add(ramp)
-      this.decorations.push(ramp)
-
-      const glow = new THREE.Mesh(new THREE.BoxGeometry(rampLen - 0.1, 0.02, 0.02), edgeMat)
-      glow.position.set(rx, rh + 0.01, rz + 0.5)
-      this.scene.add(glow)
-      this.decorations.push(glow)
-    }
-
-    const platforms = this.isTraining
-      ? [[-25, 0.6, 0, 3], [25, 0.6, 0, 3], [0, 0.6, -25, 3], [0, 0.6, 25, 3]]
-      : [[-15, 0.5, 0, 2.5], [15, 0.5, 0, 2.5], [0, 0.5, -15, 2.5], [0, 0.5, 15, 2.5]]
-
-    for (const [px, ph, pz, ps] of platforms) {
-      const plat = new THREE.Mesh(new THREE.BoxGeometry(ps, ph, ps), platMat)
+    for (const [px, ph, pz] of pPos) {
+      const plat = new THREE.Mesh(new THREE.BoxGeometry(pSize, ph, pSize), platMat)
       plat.position.set(px, ph / 2, pz)
-      plat.receiveShadow = true
-      plat.castShadow = true
-      this.scene.add(plat)
+      plat.receiveShadow = true; plat.castShadow = true
+      this.scene.add(plat); this.decorations.push(plat)
 
-      const lip = new THREE.Mesh(new THREE.BoxGeometry(ps + 0.1, 0.03, ps + 0.1), edgeMat)
+      const lip = new THREE.Mesh(new THREE.BoxGeometry(pSize + 0.1, 0.03, pSize + 0.1), edgeMat)
       lip.position.set(px, ph + 0.015, pz)
-      this.scene.add(lip)
-      this.decorations.push(lip)
+      this.scene.add(lip); this.decorations.push(lip)
+
+      for (const [dx, dz] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const rw = dx !== 0 ? 1.2 : 0.8
+        const rd = dz !== 0 ? 1.2 : 0.8
+        const ramp = new THREE.Mesh(new THREE.BoxGeometry(rw, ph * 0.45, rd), rampMat)
+        ramp.position.set(px + dx * (pSize / 2 + 0.6), ph * 0.225, pz + dz * (pSize / 2 + 0.6))
+        if (dx !== 0) ramp.rotation.x = dx * 0.15
+        else ramp.rotation.z = -dz * 0.15
+        ramp.castShadow = true; ramp.receiveShadow = true
+        this.scene.add(ramp); this.decorations.push(ramp)
+
+        for (let i = 0; i < 3; i++) {
+          const step = new THREE.Mesh(new THREE.BoxGeometry(dx !== 0 ? 0.6 : pSize * 0.4, 0.08, dz !== 0 ? 0.6 : pSize * 0.4), rampMat)
+          const t = (i + 1) / 4
+          if (dx !== 0) {
+            step.position.set(px + dx * (pSize / 2 + 0.25 + i * 0.3), t * ph, pz)
+          } else {
+            step.position.set(px, t * ph, pz + dz * (pSize / 2 + 0.25 + i * 0.3))
+          }
+          step.receiveShadow = true
+          this.scene.add(step); this.decorations.push(step)
+        }
+      }
 
       for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-        const s = new THREE.Mesh(new THREE.BoxGeometry(dx !== 0 ? 0.02 : ps - 0.2, 0.015, dz !== 0 ? 0.02 : ps - 0.2), stripMat)
-        s.position.set(px + dx * ps / 2, ph + 0.03, pz + dz * ps / 2)
-        this.scene.add(s)
-        this.decorations.push(s)
+        const s = new THREE.Mesh(dx !== 0 ? new THREE.BoxGeometry(0.02, 0.015, pSize - 0.2) : new THREE.BoxGeometry(pSize - 0.2, 0.015, 0.02), stripMat)
+        s.position.set(px + dx * pSize / 2, ph + 0.03, pz + dz * pSize / 2)
+        this.scene.add(s); this.decorations.push(s)
+      }
+    }
+
+    const pitPos = this.isTraining
+      ? [[-18, -0.6, 0], [18, -0.6, 0]]
+      : [[-12, -0.6, 0], [12, -0.6, 0]]
+    const pitSize = this.isTraining ? 5 : 3
+
+    for (const [px, pd, pz] of pitPos) {
+      const pit = new THREE.Mesh(new THREE.BoxGeometry(pitSize, -pd, pitSize), pitMat)
+      pit.position.set(px, pd / 2, pz)
+      pit.receiveShadow = true
+      this.scene.add(pit); this.decorations.push(pit)
+
+      for (const [dx, dz] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const edge = new THREE.Mesh(
+          new THREE.BoxGeometry(dx !== 0 ? 0.06 : pitSize, 0.02, dz !== 0 ? 0.06 : pitSize),
+          edgeMat
+        )
+        edge.position.set(px + dx * (pitSize / 2), pd + 0.01, pz + dz * (pitSize / 2))
+        this.scene.add(edge); this.decorations.push(edge)
       }
     }
   }
@@ -627,198 +642,7 @@ export class Level1 {
     }
   }
 
-  /* ── 走廊牆（形成空間分區）── */
-  buildCorridorWalls() {
-    const cwMat = new THREE.MeshStandardMaterial({ color: C.wallPanel, roughness: 0.4, metalness: 0.7 })
-    const wh = 2.5
-
-    const segments = this.isTraining
-      ? [
-          { pos: [-6, wh / 2, -18], s: [2.5, wh, 0.3] },
-          { pos: [6, wh / 2, -18], s: [2.5, wh, 0.3] },
-          { pos: [-6, wh / 2, 18], s: [2.5, wh, 0.3] },
-          { pos: [6, wh / 2, 18], s: [2.5, wh, 0.3] },
-          { pos: [-18, wh / 2, -6], s: [0.3, wh, 2.5] },
-          { pos: [-18, wh / 2, 6], s: [0.3, wh, 2.5] },
-          { pos: [18, wh / 2, -6], s: [0.3, wh, 2.5] },
-          { pos: [18, wh / 2, 6], s: [0.3, wh, 2.5] }
-        ]
-      : [
-          { pos: [-4, wh / 2, -12], s: [2, wh, 0.25] },
-          { pos: [4, wh / 2, -12], s: [2, wh, 0.25] },
-          { pos: [-4, wh / 2, 12], s: [2, wh, 0.25] },
-          { pos: [4, wh / 2, 12], s: [2, wh, 0.25] },
-          { pos: [-12, wh / 2, -4], s: [0.25, wh, 2] },
-          { pos: [-12, wh / 2, 4], s: [0.25, wh, 2] },
-          { pos: [12, wh / 2, -4], s: [0.25, wh, 2] },
-          { pos: [12, wh / 2, 4], s: [0.25, wh, 2] }
-        ]
-
-    for (const seg of segments) {
-      const w = new THREE.Mesh(new THREE.BoxGeometry(...seg.s), cwMat)
-      w.position.set(...seg.pos)
-      w.castShadow = true; w.receiveShadow = true
-      this.scene.add(w); this.walls.push(w)
-
-      const topMat = new THREE.MeshStandardMaterial({
-        color: C.cyan, emissive: C.cyan,
-        emissiveIntensity: this.isHard ? 0.15 : 0.3
-      })
-      const top = new THREE.Mesh(
-        new THREE.BoxGeometry(seg.s[0] + 0.04, 0.03, seg.s[2] + 0.04), topMat
-      )
-      top.position.set(seg.pos[0], seg.pos[1] + seg.s[1] / 2, seg.pos[2])
-      this.scene.add(top); this.decorations.push(top)
-    }
-  }
-
-  /* ── 掩體（矮牆）── */
-  buildBunkers() {
-    const wallMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.7, metalness: 0.4 })
-    const innerMat = new THREE.MeshStandardMaterial({ color: 0x0e1a28, roughness: 0.5, metalness: 0.5 })
-    const roofMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.5, metalness: 0.6 })
-    const glowMat = new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: this.isHard ? 0.3 : 0.6 })
-    const trimMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.4, metalness: 0.75 })
-    const floorMat = new THREE.MeshStandardMaterial({ color: C.floor, roughness: 0.7, metalness: 0.3 })
-    const bunkPos = this.isTraining
-      ? [[-28, 0, -28], [28, 0, -28], [-28, 0, 28], [28, 0, 28]]
-      : [[-18, 0, -18], [18, 0, -18], [-18, 0, 18], [18, 0, 18]]
-
-    for (const [bx, _, bz] of bunkPos) {
-      const bw = 2.5
-      const bh = 2.4
-      const wt = 0.2
-      const doorW = 0.6
-      const doorH = 1.8
-
-      const dirToCenter = new THREE.Vector2(-bx, -bz).normalize()
-      let doorSide
-      if (Math.abs(dirToCenter.x) > Math.abs(dirToCenter.y)) doorSide = dirToCenter.x > 0 ? 3 : 2
-      else doorSide = dirToCenter.y > 0 ? 1 : 0
-
-      const buildWall = (sideIdx, hasDoor) => {
-        const angle = (sideIdx / 4) * Math.PI * 2
-        const offX = Math.sin(angle) * bw / 2
-        const offZ = Math.cos(angle) * bw / 2
-        const sw = sideIdx < 2 ? bw : wt
-        const sd = sideIdx < 2 ? wt : bw
-
-        const seg = new THREE.Mesh(new THREE.BoxGeometry(sw, bh, sd), wallMat)
-        seg.position.set(bx + offX, bh / 2, bz + offZ)
-        seg.castShadow = true; seg.receiveShadow = true
-        this.scene.add(seg); this.walls.push(seg)
-
-        const inner = new THREE.Mesh(new THREE.BoxGeometry(sw - 0.02, bh - 0.04, sd - 0.02), innerMat)
-        inner.position.set(bx + offX, bh / 2, bz + offZ)
-        inner.scale.set(0.97, 0.97, 0.97)
-        this.scene.add(inner); this.decorations.push(inner)
-
-        const topTrim = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.04, sd), trimMat)
-        topTrim.position.set(bx + offX, bh, bz + offZ)
-        this.scene.add(topTrim); this.decorations.push(topTrim)
-
-        const botTrim = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.03, sd), trimMat)
-        botTrim.position.set(bx + offX, 0.015, bz + offZ)
-        this.scene.add(botTrim); this.decorations.push(botTrim)
-
-        if (hasDoor) {
-          const door = new THREE.Mesh(new THREE.BoxGeometry(sw < 0.3 ? doorW : 0.02, doorH, sd < 0.3 ? doorW : 0.02), innerMat)
-          door.position.set(bx + offX, doorH / 2, bz + offZ)
-          this.scene.add(door); this.decorations.push(door)
-
-          const doorTrim = new THREE.Mesh(new THREE.BoxGeometry(sw < 0.3 ? doorW + 0.04 : 0.04, 0.03, sd < 0.3 ? doorW + 0.04 : 0.04), glowMat)
-          doorTrim.position.set(bx + offX, doorH, bz + offZ)
-          this.scene.add(doorTrim); this.decorations.push(doorTrim)
-        }
-      }
-
-      for (let side = 0; side < 4; side++) {
-        buildWall(side, side === doorSide)
-      }
-
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw - 0.05, 0.06, bw - 0.05), roofMat)
-      roof.position.set(bx, bh + 0.03, bz)
-      roof.castShadow = true
-      this.scene.add(roof); this.decorations.push(roof)
-
-      const roofTrim = new THREE.Mesh(new THREE.BoxGeometry(bw - 0.1, 0.02, bw - 0.1), glowMat)
-      roofTrim.position.set(bx, bh + 0.06, bz)
-      this.scene.add(roofTrim); this.decorations.push(roofTrim)
-
-      const floor = new THREE.Mesh(new THREE.BoxGeometry(bw - 0.1, 0.05, bw - 0.1), floorMat)
-      floor.position.set(bx, 0.025, bz)
-      floor.receiveShadow = true
-      this.scene.add(floor); this.decorations.push(floor)
-
-      const terminal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.2), trimMat)
-      terminal.position.set(bx + 0.5, 0.25, bz - 0.5)
-      this.scene.add(terminal); this.decorations.push(terminal)
-
-      const screen = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 0.01), glowMat)
-      screen.position.set(bx + 0.5, 0.4, bz - 0.5 + 0.1)
-      this.scene.add(screen); this.decorations.push(screen)
-
-      const light = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6),
-        new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: 0.5 }))
-      light.position.set(bx, bh - 0.1, 0)
-      this.scene.add(light); this.decorations.push(light)
-
-      for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
-        const cl = new THREE.Mesh(new THREE.SphereGeometry(0.008, 4, 4), glowMat)
-        cl.position.set(bx + sx * (bw / 2 - 0.04), 0.025, bz + sz * (bw / 2 - 0.04))
-        this.scene.add(cl); this.decorations.push(cl)
-      }
-    }
-  }
-
-  /* ── 堆疊貨櫃（GLB 優先，後備方塊）── */
-  buildStackedCrates() {
-    const crateModel = this.assets?.models.get('shipping_crate')
-    const crateScale = this.isTraining ? 0.6 : 0.35
-
-    const stacks = this.isTraining
-      ? [[-24, 0, -16], [24, 0, 16], [-16, 0, -40], [40, 0, -24],
-         [-40, 0, 24], [16, 0, 40], [-32, 0, 0], [32, 0, 0]]
-      : this.isHard
-        ? [[-16, 0, -12], [16, 0, 12], [-12, 0, -28], [28, 0, -16],
-           [-28, 0, 16], [12, 0, 28]]
-        : [[-12, 0, -10], [12, 0, 10], [-10, 0, -24], [24, 0, -12],
-           [-24, 0, 12], [10, 0, 24]]
-
-    const crateMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.75, metalness: 0.3 })
-    const bandMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.5, metalness: 0.5 })
-
-    for (const [cx, _, cz] of stacks) {
-      const stackH = 1 + Math.floor(Math.random() * 3)
-      if (crateModel) {
-        for (let layer = 0; layer < stackH; layer++) {
-          const inst = crateModel.clone()
-          inst.scale.setScalar(crateScale)
-          inst.position.set(cx, crateScale * 0.5 + layer * crateScale + 0.01, cz)
-          inst.castShadow = true; inst.receiveShadow = true
-          inst.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true } })
-          this.scene.add(inst); this.decorations.push(inst); this.walls.push(inst)
-        }
-      } else {
-        const cs = this.isTraining ? 0.9 : 0.5
-        for (let layer = 0; layer < stackH; layer++) {
-          const crate = new THREE.Mesh(new THREE.BoxGeometry(cs, cs, cs), crateMat)
-          crate.position.set(cx, cs / 2 + layer * cs + 0.01, cz)
-          crate.castShadow = true; crate.receiveShadow = true
-          this.scene.add(crate); this.decorations.push(crate); this.walls.push(crate)
-          const band = new THREE.Mesh(new THREE.BoxGeometry(cs + 0.02, 0.03, cs + 0.02), bandMat)
-          band.position.set(cx, cs / 2 + layer * cs - 0.02, cz)
-          this.scene.add(band); this.decorations.push(band)
-          if (layer === 0) {
-            const base = new THREE.Mesh(new THREE.BoxGeometry(cs + 0.06, 0.04, cs + 0.06), bandMat)
-            base.position.set(cx, 0.02, cz)
-            this.scene.add(base); this.decorations.push(base)
-          }
-        }
-      }
-    }
-  }
-
+  /* ── 高架平台（含樓梯）── */
   buildElevatedPlatforms() {
     const gc = C.cyan
     const eI = this.isHard ? 0.25 : 0.4
@@ -977,31 +801,6 @@ export class Level1 {
     }
   }
 
-  /* ── 機器人裝飾（放置已載入的 GLB 模型）── */
-  buildRobotDecorations() {
-    const robotModel = this.assets?.models.get('sci-fi_turret_animated_by_get3dmodels')
-    if (!robotModel) return
-
-    const rScale = this.isTraining ? 1.2 : 0.8
-    const positions = this.isTraining
-      ? [[-28, 0, 0], [28, 0, 0], [0, 0, -28], [0, 0, 28], [-20, 0, 20], [20, 0, -20]]
-      : [[-18, 0, 0], [18, 0, 0], [0, 0, -18], [0, 0, 18], [-14, 0, 14], [14, 0, -14]]
-
-    for (const [rx, _, rz] of positions) {
-      if (this.checkCollision(new THREE.Vector3(rx, 0, rz), 0.8)) continue
-      const inst = robotModel.clone()
-      inst.scale.setScalar(rScale)
-      inst.position.set(rx, 0.01, rz)
-      inst.rotation.y = Math.random() * Math.PI * 2
-      inst.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true } })
-      this.scene.add(inst); this.decorations.push(inst)
-      this.collisionBoxes.push(new THREE.Box3(
-        new THREE.Vector3(rx - 0.5, 0, rz - 0.5),
-        new THREE.Vector3(rx + 0.5, 1.2, rz + 0.5)
-      ))
-    }
-  }
-
   /* ── 照明 ── */
   buildLighting() {
     const spread = this.isTraining ? 20 : 12
@@ -1029,106 +828,6 @@ export class Level1 {
       const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), bulbMat)
       bulb.position.copy(light.position)
       this.scene.add(bulb)
-    }
-  }
-
-  /* ── 導管裝飾 ── */
-  buildConduits() {
-    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness: 0.8, roughness: 0.3 })
-    const jointMat = new THREE.MeshStandardMaterial({
-      color: C.cyan, emissive: C.cyan,
-      emissiveIntensity: this.isHard ? 0.2 : 0.4, transparent: true, opacity: 0.2
-    })
-    const h = this.halfSize - 1
-    const placements = this.isTraining
-      ? [[-h, -h * 0.5], [h, -h * 0.5], [-h, h * 0.5], [h, h * 0.5]]
-      : [[-h, -h * 0.6], [h, -h * 0.6], [-h, h * 0.6], [h, h * 0.6]]
-
-    for (const [px, pz] of placements) {
-      const dir = Math.random() > 0.5 ? 'x' : 'z'
-      const len = 2 + Math.random() * 3
-      for (let i = 0; i < 6; i++) {
-        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.3, 6), pipeMat)
-        seg.position.set(
-          dir === 'x' ? px + (i - 3) * 0.3 : px + (Math.random() - 0.5) * 2,
-          0.5 + Math.random() * 2.5,
-          dir === 'z' ? pz + (i - 3) * 0.3 : pz + (Math.random() - 0.5) * 2
-        )
-        seg.rotation.z = dir === 'x' ? Math.PI / 2 : 0
-        this.scene.add(seg)
-        this.decorations.push(seg)
-
-        if (i % 3 === 0) {
-          const joint = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.01, 6, 8), jointMat)
-          joint.position.copy(seg.position)
-          joint.rotation.x = Math.PI / 2
-          this.scene.add(joint)
-          this.decorations.push(joint)
-        }
-      }
-    }
-  }
-
-  /* ── 終端機 ── */
-  buildTerminals() {
-    const bodyMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.5, metalness: 0.5 })
-    const screenMat = new THREE.MeshStandardMaterial({
-      color: this.isHard ? C.red : C.cyan, emissive: this.isHard ? C.red : C.cyan,
-      emissiveIntensity: 0.6
-    })
-
-    const n = this.isTraining ? 12 : 6
-    const r = this.halfSize - 2
-    for (let i = 0; i < n; i++) {
-      const angle = (i / n) * Math.PI * 2 + 0.2
-      const tx = Math.cos(angle) * r
-      const tz = Math.sin(angle) * r
-      const rot = -angle + Math.PI
-
-      const base = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.1, 0.5), bodyMat)
-      base.position.set(tx, 0.05, tz)
-      this.scene.add(base); this.decorations.push(base)
-
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.2), bodyMat)
-      body.position.set(tx, 0.6, tz)
-      this.scene.add(body); this.decorations.push(body)
-
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.2), screenMat)
-      screen.position.set(
-        tx + 0.11 * Math.sin(rot), 0.8, tz + 0.11 * Math.cos(rot)
-      )
-      screen.rotation.y = rot
-      this.scene.add(screen); this.decorations.push(screen)
-    }
-  }
-
-  /* ── 天花板吊燈 ── */
-  buildCeilingLights() {
-    const gc = 0x00f2ff
-    const eI = this.isHard ? 0.15 : 0.3
-    const wireMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness: 0.8, roughness: 0.3 })
-    const fixMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, metalness: 0.7, roughness: 0.4 })
-    const glowMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 2 })
-    const h = this.halfSize - 1
-    for (const [px, pz] of [[-h * 0.6, -h * 0.6], [h * 0.6, -h * 0.6], [-h * 0.6, h * 0.6], [h * 0.6, h * 0.6]]) {
-      const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 4), wireMat)
-      wire.position.set(px, 5.7, pz); this.scene.add(wire); this.decorations.push(wire)
-      const fix = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.12), fixMat)
-      fix.position.set(px, 5.4, pz); this.scene.add(fix); this.decorations.push(fix)
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), glowMat)
-      glow.position.set(px, 5.35, pz); this.scene.add(glow); this.decorations.push(glow)
-    }
-  }
-
-  /* ── 地板發光條 ── */
-  buildFloorGlow() {
-    const gc = 0x00f2ff
-    const eI = this.isHard ? 0.1 : 0.2
-    const stripMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, transparent: true, opacity: 0.08 })
-    const h = this.halfSize - 1
-    for (const [x, z, w, d] of [[0, -h * 0.8, h * 0.5, 0.025], [0, h * 0.8, h * 0.5, 0.025], [-h * 0.8, 0, 0.025, h * 0.5], [h * 0.8, 0, 0.025, h * 0.5]]) {
-      const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.005, d), stripMat)
-      strip.position.set(x, 0.015, z); this.scene.add(strip); this.floorMeshes.push(strip)
     }
   }
 
