@@ -5,12 +5,12 @@ import { Sniper } from '../enemies/sniper.js'
 import { createBulletPickup, createMedkit, createGrenadePickup } from '../core/pickups.js'
 
 const C = {
-  bg: 0x080406,
-  floor: 0x0a0608,
-  wallBase: 0x0e080a,
-  wallPanel: 0x100a0c,
-  metalDark: 0x0e080a,
-  metalMid: 0x160e10,
+  bg: 0x181012,
+  floor: 0x1c1416,
+  wallBase: 0x22181c,
+  wallPanel: 0x281e22,
+  metalDark: 0x22181c,
+  metalMid: 0x30262a,
   red: 0xff2222,
   darkRed: 0x880000,
   pulse: 0xff0044,
@@ -677,8 +677,11 @@ export class Level5 {
   }
 
   buildLighting() {
+    const amb = new THREE.AmbientLight(0x663344, 0.35)
+    this.scene.add(amb); this.lights.push(amb)
+
     const lc = 0xff2222
-    const li = this.isTraining ? 4.0 : this.isHard ? 2.0 : 3.0
+    const li = this.isTraining ? 4.5 : this.isHard ? 2.5 : 3.8
 
     const positions = [[0, 4.8, 0],
       [-8, 4.8, -8], [8, 4.8, -8],
@@ -687,12 +690,12 @@ export class Level5 {
 
     const bulbMat = new THREE.MeshStandardMaterial({
       color: lc, emissive: lc,
-      emissiveIntensity: this.isTraining ? 0.6 : this.isHard ? 0.2 : 0.4,
+      emissiveIntensity: this.isTraining ? 0.7 : this.isHard ? 0.25 : 0.5,
       transparent: true, opacity: this.isHard ? 0.4 : 0.6
     })
 
     for (const [x, y, z] of positions) {
-      const light = new THREE.PointLight(lc, li, this.isTraining ? 30 : 22)
+      const light = new THREE.PointLight(lc, li, this.isTraining ? 35 : 28)
       light.position.set(x, y, z)
       this.scene.add(light)
       this.lights.push(light)

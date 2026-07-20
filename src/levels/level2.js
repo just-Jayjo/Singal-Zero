@@ -4,14 +4,14 @@ import { Rusher } from '../enemies/rusher.js'
 import { createBulletPickup, createMedkit, createGrenadePickup } from '../core/pickups.js'
 
 const C = {
-  bg: 0x0a1620,
-  floor: 0x0e1a28,
-  wallBase: 0x101e2e,
-  wallPanel: 0x122236,
-  colBase: 0x0f1a2a,
+  bg: 0x1a2e42,
+  floor: 0x1e3448,
+  wallBase: 0x223a50,
+  wallPanel: 0x26445a,
+  colBase: 0x1e3448,
   cyan: 0x00f2ff,
-  metalDark: 0x142436,
-  metalMid: 0x1a2a3e,
+  metalDark: 0x2a4058,
+  metalMid: 0x36506a,
   serverGreen: 0x00ff88,
   screenBlue: 0x4488ff
 }
@@ -683,9 +683,12 @@ export class Level2 {
   }
 
   buildLighting() {
+    const amb = new THREE.AmbientLight(0x446688, 0.5)
+    this.scene.add(amb); this.lights.push(amb)
+
     const spread = this.isTraining ? 8 : 5
     const lc = this.isHard ? 0x6688ff : 0x4488ff
-    const li = this.isTraining ? 3.8 : this.isHard ? 2.5 : 3.2
+    const li = this.isTraining ? 4.5 : this.isHard ? 3.0 : 4.0
 
     const positions = [[0, 5.5, 0],
       [-spread, 5.5, -spread], [spread, 5.5, -spread],
@@ -693,12 +696,12 @@ export class Level2 {
 
     const bulbMat = new THREE.MeshStandardMaterial({
       color: lc, emissive: lc,
-      emissiveIntensity: this.isTraining ? 0.5 : this.isHard ? 0.15 : 0.3,
+      emissiveIntensity: this.isTraining ? 0.6 : this.isHard ? 0.2 : 0.4,
       transparent: true, opacity: this.isHard ? 0.4 : 0.6
     })
 
     for (const [x, y, z] of positions) {
-      const light = new THREE.PointLight(lc, li, this.isTraining ? 22 : 16)
+      const light = new THREE.PointLight(lc, li, this.isTraining ? 28 : 22)
       light.position.set(x, y, z)
       this.scene.add(light)
       this.lights.push(light)
