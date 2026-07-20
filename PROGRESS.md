@@ -1,5 +1,27 @@
 # PROGRESS — 訊號：零層
 
+## 2026-07-20 Session — game.js 重構：拆成 5 個模組 + Bug 修復
+
+### Changes
+
+**Bug 修復**
+- **`unlisten()` 缺 `mouseup` 移除**: `listen()` 註冊了 `mouseup` 事件但 `unlisten()` 從未 remove，導致多次 listen/unlisten 後多個 handler 疊加。已補上 `document.removeEventListener('mouseup', this._bound.mouseup)`
+- **`start()` 缺執行中檢查**: 重複呼叫 `start()` 時會疊加多個 `animate()` 循環。已加入 `if (this.running) return` 守衛
+
+**程式碼重構（game.js 1720 行 → 5 個模組）**
+- `game.js`（~590 行）: 建構子（分組區域標題 + 註釋）、`init()`、`listen()/unlisten()`、`start()`、`animate()`、`restart()`、`restartContinue()`、`resize()`、靜態 getter
+- `gameCombat.js`（~390 行）: 所有交戰、撿拾、碰撞、特效方法
+- `gameLevel.js`（~310 行）: 關卡建立、波次管理、Boss 生成、關卡推進
+- `gameEnding.js`（~290 行）: 結尾序列、結果畫面、資料日誌廊
+- `gameTraining.js`（~200 行）: 訓練模式啟用、敵情面板、目標生成、暫停/退出
+
+**建構子統一整理**: 使用 `/* === 類別標題 === */` 分組，建立時順便附單行說明（約 12 個分組區域）
+
+### 設計決策（跨模型接手用）
+- 拆檔策略: 每個子模組 export `addXxxMethods(Game, ...deps)` 函式，game.js 在 class 定義後呼叫將 prototype method 掛上。好處是所有 `this.xxx` 照常運作、無需改變外部呼叫端
+- `LEVEL_CLASSES`/`_textureCache`/`_modelCache`: 維持 module-level 常數，透過閉包傳入各子模組，不設 static property（減少耦合）
+- `_bound` 事件參考留在 game.js constructor 內（唯一合理位置），子模組共用
+
 ## 2026-07-19 Session (Final Polish) — 全面Code Review + Bug Fixes
 
 ### 程式碼審查發現與修復

@@ -44,8 +44,8 @@ export class Level3 {
     this.buildFloor()
     this.buildPerimeterWalls()
     this.buildCoolantTanks()
-    this.buildPipeBridges()
-    this.buildWalkways()
+    if (this.isTraining) this.buildPipeBridges()
+    if (this.isTraining) this.buildWalkways()
     this.buildFloorVents()
     this.buildElevatedPlatforms()
     this.buildLighting()
@@ -82,23 +82,30 @@ export class Level3 {
   }
 
   buildCeiling() {
-    const mat = new THREE.MeshStandardMaterial({ color: C.bg, roughness: 0.8, metalness: 0.2 })
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(this.size + 4, this.size + 4), mat)
+    const ceilMat = new THREE.MeshStandardMaterial({ color: C.bg, roughness: 0.8, metalness: 0.2 })
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(this.size + 4, this.size + 4), ceilMat)
     ceil.rotation.x = Math.PI / 2; ceil.position.y = 6.0
     this.scene.add(ceil); this.floorMeshes.push(ceil)
 
-    const gridMat = new THREE.MeshStandardMaterial({
-      color: C.teal, emissive: C.teal,
-      emissiveIntensity: this.isHard ? 0.08 : 0.15, transparent: true, opacity: 0.08
-    })
-    const step = 3
+    const beamMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
+    const glowMat = new THREE.MeshStandardMaterial({ color: C.teal, emissive: C.teal, emissiveIntensity: this.isHard ? 0.08 : 0.15, transparent: true, opacity: 0.06 })
+    const step = 4
     const n = Math.floor(this.halfSize / step)
     for (let i = -n; i <= n; i++) {
-      for (const [x, z, w, h] of [[i * step, 0, 0.02, this.size], [0, i * step, this.size, 0.02]]) {
-        const g = new THREE.Mesh(new THREE.PlaneGeometry(w, h), gridMat)
-        g.rotation.x = -Math.PI / 2; g.position.set(x, 5.9, z)
-        this.scene.add(g); this.floorMeshes.push(g)
-      }
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(step * 0.08, 0.08, this.size + 2), beamMat)
+      beam.position.set(i * step, 5.92, 0)
+      this.scene.add(beam); this.decorations.push(beam)
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(step * 0.06, 0.015, this.size + 2), glowMat)
+      strip.position.set(i * step, 5.9, 0)
+      this.scene.add(strip); this.decorations.push(strip)
+    }
+    for (let i = -n; i <= n; i++) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(this.size + 2, 0.08, step * 0.08), beamMat)
+      beam.position.set(0, 5.92, i * step)
+      this.scene.add(beam); this.decorations.push(beam)
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(this.size + 2, 0.015, step * 0.06), glowMat)
+      strip.position.set(0, 5.9, i * step)
+      this.scene.add(strip); this.decorations.push(strip)
     }
   }
 
@@ -158,13 +165,20 @@ export class Level3 {
 
   buildPerimeterWalls() {
     const wallMat = new THREE.MeshStandardMaterial({ color: C.wallBase, roughness: 0.4, metalness: 0.8 })
+    const frameMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
+    const panelMat = new THREE.MeshStandardMaterial({ color: C.wallPanel, roughness: 0.5, metalness: 0.6 })
+    const tealMat = new THREE.MeshStandardMaterial({ color: C.teal, emissive: C.teal, emissiveIntensity: this.isHard ? 0.4 : 0.8 })
+    const glowMat = new THREE.MeshStandardMaterial({ color: C.teal, emissive: C.teal, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.1 })
+    const coolantMat = new THREE.MeshStandardMaterial({ color: C.coolant, emissive: C.coolant, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.12 })
     const h = this.halfSize
     const wh = 6.0
+    const inset = h - 0.06
+
     const sides = [
-      { pos: [0, wh / 2, -h], s: [this.size, wh, 0.12] },
-      { pos: [0, wh / 2, h], s: [this.size, wh, 0.12] },
-      { pos: [-h, wh / 2, 0], s: [0.12, wh, this.size] },
-      { pos: [h, wh / 2, 0], s: [0.12, wh, this.size] }
+      { pos: [0, wh / 2, -h], s: [this.size, wh, 0.12], axis: 'z', dir: -1 },
+      { pos: [0, wh / 2, h], s: [this.size, wh, 0.12], axis: 'z', dir: 1 },
+      { pos: [-h, wh / 2, 0], s: [0.12, wh, this.size], axis: 'x', dir: -1 },
+      { pos: [h, wh / 2, 0], s: [0.12, wh, this.size], axis: 'x', dir: 1 }
     ]
     for (const s of sides) {
       const w = new THREE.Mesh(new THREE.BoxGeometry(...s.s), wallMat)
@@ -172,106 +186,37 @@ export class Level3 {
       this.scene.add(w); this.walls.push(w)
     }
 
-    const frameMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
-    const railMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.3, metalness: 0.8 })
-    const tealMat = new THREE.MeshStandardMaterial({
-      color: C.teal, emissive: C.teal,
-      emissiveIntensity: this.isHard ? 0.4 : 0.8
-    })
-    const coolantMat = new THREE.MeshStandardMaterial({
-      color: C.coolant, emissive: C.coolant,
-      emissiveIntensity: this.isHard ? 0.15 : 0.3,
-      transparent: true, opacity: 0.12
-    })
-    const inset = h - 0.06
-    const panelW = this.isTraining ? 5 : 4
+    const panelW = 3
+    const panelGap = 0.4
     const nPerSide = Math.floor((this.size - 2) / panelW)
-
     for (let side = 0; side < 4; side++) {
+      const isX = side < 2
+      const baseX = isX ? 0 : (side === 2 ? -inset : inset)
+      const baseZ = isX ? (side === 0 ? -inset : inset) : 0
       for (let k = -nPerSide; k <= nPerSide; k++) {
         if (Math.abs(k) < 1) continue
         const cp = k * panelW
+        const cx = isX ? cp : baseX
+        const cz = isX ? baseZ : cp
 
-        let cx, cz, fz, fx
-        if (side < 2) {
-          cx = cp; cz = side === 0 ? -inset : inset
-          fz = cz; fx = 0
-        } else {
-          cx = side === 2 ? -inset : inset; cz = cp
-          fx = cx; fz = 0
-        }
+        const recessed = new THREE.Mesh(new THREE.BoxGeometry(isX ? panelW - panelGap : 0.06, 4.8, isX ? 0.06 : panelW - panelGap), panelMat)
+        recessed.position.set(cx, 3.0, cz)
+        this.scene.add(recessed); this.decorations.push(recessed)
 
-        const isXWall = side < 2
-
-        /* 垂直分隔框條 */
-        const divH = 4.0
-        const div = new THREE.Mesh(new THREE.BoxGeometry(0.03, divH, 0.03), frameMat)
-        div.position.set(cx, 3.0, cz)
-        this.scene.add(div); this.decorations.push(div)
-
-        /* 面板框架（上下各一片） */
-        for (const py of [1.8, 4.2]) {
-          const pw = panelW - 0.6
-          const ph = 1.0
-          const fd = 0.015
-          /* 四條框邊 */
-          const bars = isXWall
-            ? [
-                { s: [0.02, ph, fd], p: [cx - pw / 2, py, fz] },
-                { s: [0.02, ph, fd], p: [cx + pw / 2, py, fz] },
-                { s: [pw, 0.02, fd], p: [cx, py - ph / 2, fz] },
-                { s: [pw, 0.02, fd], p: [cx, py + ph / 2, fz] }
-              ]
-            : [
-                { s: [fd, ph, 0.02], p: [fx, py, cz - pw / 2] },
-                { s: [fd, ph, 0.02], p: [fx, py, cz + pw / 2] },
-                { s: [fd, 0.02, pw], p: [fx, py - ph / 2, cz] },
-                { s: [fd, 0.02, pw], p: [fx, py + ph / 2, cz] }
-              ]
-          for (const b of bars) {
-            const bar = new THREE.Mesh(new THREE.BoxGeometry(...b.s), frameMat)
-            bar.position.set(...b.p)
-            this.scene.add(bar); this.decorations.push(bar)
-          }
-        }
+        const border = new THREE.Mesh(new THREE.BoxGeometry(isX ? panelW : 0.08, 5.0, isX ? 0.08 : panelW), frameMat)
+        border.position.set(cx, 3.0, cz)
+        this.scene.add(border); this.decorations.push(border)
       }
     }
 
-    /* 水平腰帶（y=3.0） */
-    for (const [x, y, z, w, hh, d] of [
-      [0, 3.0, -inset, this.size, 0.06, 0.04],
-      [0, 3.0, inset, this.size, 0.06, 0.04],
-      [-inset, 3.0, 0, 0.04, 0.06, this.size],
-      [inset, 3.0, 0, 0.04, 0.06, this.size]
-    ]) {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), railMat)
-      rail.position.set(x, y, z)
-      this.scene.add(rail); this.decorations.push(rail)
-    }
-
-    /* 腰帶上下夾條（發光） */
-    for (const yOff of [-0.08, 0.08]) {
+    for (const yPos of [0.15, 5.5]) {
       for (const [x, y, z, w, hh, d] of [
-        [0, 3.0 + yOff, -inset, this.size, 0.015, 0.035],
-        [0, 3.0 + yOff, inset, this.size, 0.015, 0.035],
-        [-inset, 3.0 + yOff, 0, 0.035, 0.015, this.size],
-        [inset, 3.0 + yOff, 0, 0.035, 0.015, this.size]
+        [0, yPos, -inset, this.size, 0.04, 0.04],
+        [0, yPos, inset, this.size, 0.04, 0.04],
+        [-inset, yPos, 0, 0.04, 0.04, this.size],
+        [inset, yPos, 0, 0.04, 0.04, this.size]
       ]) {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), tealMat)
-        strip.position.set(x, y, z)
-        this.scene.add(strip); this.decorations.push(strip)
-      }
-    }
-
-    /* 底部 + 頂部內發光暈 */
-    for (const yPos of [0.1, 5.5]) {
-      for (const [x, y, z, w, hh, d] of [
-        [0, yPos, -inset, this.size, 0.03, 0.03],
-        [0, yPos, inset, this.size, 0.03, 0.03],
-        [-inset, yPos, 0, 0.03, 0.03, this.size],
-        [inset, yPos, 0, 0.03, 0.03, this.size]
-      ]) {
-        const glow = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), coolantMat)
+        const glow = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), glowMat)
         glow.position.set(x, y, z)
         this.scene.add(glow); this.decorations.push(glow)
       }
@@ -292,7 +237,7 @@ export class Level3 {
 
     const tankConfigs = this.isTraining
       ? [[-8, -8], [8, 8], [-8, 8], [8, -8]]
-      : [[-6, -6], [6, 6], [-6, 6], [6, -6], [0, -10], [0, 10]]
+      : [[-6, -6], [6, 6], [-6, 6], [6, -6]]
 
     for (const [tx, tz] of tankConfigs) {
       const height = 2.5 + Math.random() * 1.0
@@ -500,8 +445,7 @@ export class Level3 {
 
     const positions = this.isTraining
       ? [[-10, 3.0, -10, 2.5], [10, 3.0, -10, 2.5], [-10, 3.0, 10, 2.5], [10, 3.0, 10, 2.5]]
-      : [[-8, 3.0, -8, 2], [8, 3.0, -8, 2], [-8, 3.0, 8, 2], [8, 3.0, 8, 2],
-         [-14, 2.5, -6, 1.8], [14, 2.5, 6, 1.8], [-6, 2.5, -14, 1.8], [6, 2.5, 14, 1.8]]
+      : [[-10, 3.0, -10, 2.5], [10, 3.0, -10, 2.5], [-10, 3.0, 10, 2.5], [10, 3.0, 10, 2.5]]
 
     for (const [px, ph, pz, ps] of positions) {
       const hs = ps / 2

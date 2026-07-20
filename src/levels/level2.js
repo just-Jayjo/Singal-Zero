@@ -23,7 +23,7 @@ export class Level2 {
     this.isTraining = difficulty === 'easy'
     this.isHard = difficulty === 'hard'
     this.atmosColor = this.isHard ? 0x060c14 : this.isTraining ? 0x0e2234 : 0x0a1620
-    this.halfSize = this.isTraining ? 28 : 22
+    this.halfSize = this.isTraining ? 28 : 26
     this.size = this.halfSize * 2
     this.walls = []
     this.floorMeshes = []
@@ -86,12 +86,45 @@ export class Level2 {
   }
 
   buildCeiling() {
-    const mat = new THREE.MeshStandardMaterial({ color: C.bg, roughness: 0.8, metalness: 0.2 })
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(this.size + 4, this.size + 4), mat)
+    const ceilMat = new THREE.MeshStandardMaterial({ color: C.bg, roughness: 0.8, metalness: 0.2 })
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(this.size + 4, this.size + 4), ceilMat)
     ceil.rotation.x = Math.PI / 2
     ceil.position.y = 6.0
     this.scene.add(ceil)
     this.floorMeshes.push(ceil)
+
+    const beamMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
+    const glowMat = new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: this.isHard ? 0.08 : 0.15, transparent: true, opacity: 0.06 })
+    const step = 4
+    const n = Math.floor(this.halfSize / step)
+    for (let i = -n; i <= n; i++) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(step * 0.08, 0.08, this.size + 2), beamMat)
+      beam.position.set(i * step, 5.92, 0)
+      this.scene.add(beam); this.decorations.push(beam)
+
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(step * 0.06, 0.015, this.size + 2), glowMat)
+      strip.position.set(i * step, 5.9, 0)
+      this.scene.add(strip); this.decorations.push(strip)
+    }
+    for (let i = -n; i <= n; i++) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(this.size + 2, 0.08, step * 0.08), beamMat)
+      beam.position.set(0, 5.92, i * step)
+      this.scene.add(beam); this.decorations.push(beam)
+
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(this.size + 2, 0.015, step * 0.06), glowMat)
+      strip.position.set(0, 5.9, i * step)
+      this.scene.add(strip); this.decorations.push(strip)
+    }
+
+    const panelMat = new THREE.MeshStandardMaterial({ color: C.wallPanel, roughness: 0.6, metalness: 0.3, transparent: true, opacity: 0.5 })
+    for (let i = -n + 1; i <= n - 1; i++) {
+      for (let j = -n + 1; j <= n - 1; j++) {
+        if (Math.abs(i) < 1 && Math.abs(j) < 1) continue
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(step * 0.85, 0.02, step * 0.85), panelMat)
+        panel.position.set(i * step, 5.85, j * step)
+        this.scene.add(panel); this.decorations.push(panel)
+      }
+    }
   }
 
   buildFloor() {
@@ -159,7 +192,7 @@ export class Level2 {
       ramp.castShadow = true; ramp.receiveShadow = true
       this.scene.add(ramp); this.decorations.push(ramp)
     }
-    const platforms = this.isTraining ? [[-12,0.6,0,2.5],[12,0.6,0,2.5],[0,0.6,-12,2.5],[0,0.6,12,2.5]] : [[-7,0.5,0,2],[7,0.5,0,2],[0,0.5,-7,2],[0,0.5,7,2]]
+    const platforms = this.isTraining ? [[-12,0.6,0,2.5],[12,0.6,0,2.5],[0,0.6,-12,2.5],[0,0.6,12,2.5]] : [[-8,0.5,0,2],[8,0.5,0,2],[0,0.5,-8,2],[0,0.5,8,2]]
     for (const [px, ph, pz, ps] of platforms) {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(ps, ph, ps), platMat)
       plat.position.set(px, ph/2, pz)
@@ -174,109 +207,71 @@ export class Level2 {
   buildPerimeterWalls() {
     const wallMat = new THREE.MeshStandardMaterial({ color: C.wallBase, roughness: 0.4, metalness: 0.8 })
     const frameMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.3, metalness: 0.85 })
-    const railMat = new THREE.MeshStandardMaterial({ color: C.metalMid, roughness: 0.3, metalness: 0.8 })
+    const panelMat = new THREE.MeshStandardMaterial({ color: C.wallPanel, roughness: 0.5, metalness: 0.6 })
+    const stripMat = new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: this.isHard ? 0.5 : 1.0 })
+    const greenMat = new THREE.MeshStandardMaterial({ color: C.serverGreen, emissive: C.serverGreen, emissiveIntensity: this.isHard ? 0.3 : 0.6 })
+    const glowMat = new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: this.isHard ? 0.3 : 0.6, transparent: true, opacity: 0.12 })
     const h = this.halfSize
     const wh = 6.0
+    const inset = h - 0.06
 
     const sides = [
-      { pos: [0, wh / 2, -h], s: [this.size, wh, 0.12] },
-      { pos: [0, wh / 2, h], s: [this.size, wh, 0.12] },
-      { pos: [-h, wh / 2, 0], s: [0.12, wh, this.size] },
-      { pos: [h, wh / 2, 0], s: [0.12, wh, this.size] }
+      { pos: [0, wh / 2, -h], s: [this.size, wh, 0.12], axis: 'z', dir: -1 },
+      { pos: [0, wh / 2, h], s: [this.size, wh, 0.12], axis: 'z', dir: 1 },
+      { pos: [-h, wh / 2, 0], s: [0.12, wh, this.size], axis: 'x', dir: -1 },
+      { pos: [h, wh / 2, 0], s: [0.12, wh, this.size], axis: 'x', dir: 1 }
     ]
     for (const s of sides) {
       const w = new THREE.Mesh(new THREE.BoxGeometry(...s.s), wallMat)
       w.position.set(...s.pos)
       w.castShadow = true
       w.receiveShadow = true
-      this.scene.add(w)
-      this.walls.push(w)
+      this.scene.add(w); this.walls.push(w)
     }
 
-    const stripMat = new THREE.MeshStandardMaterial({
-      color: C.cyan, emissive: C.cyan,
-      emissiveIntensity: this.isHard ? 0.5 : 1.0
-    })
-    const greenMat = new THREE.MeshStandardMaterial({
-      color: C.serverGreen, emissive: C.serverGreen,
-      emissiveIntensity: this.isHard ? 0.3 : 0.6
-    })
-    const panelMat = new THREE.MeshStandardMaterial({ color: C.metalDark, roughness: 0.4, metalness: 0.7 })
-    const inset = h - 0.06
-    const panelW = this.isTraining ? 5 : 4
+    const panelW = 3
+    const panelGap = 0.4
     const nPerSide = Math.floor((this.size - 2) / panelW)
-
     for (let side = 0; side < 4; side++) {
+      const isX = side < 2
+      const baseX = isX ? 0 : (side === 2 ? -inset : inset)
+      const baseZ = isX ? (side === 0 ? -inset : inset) : 0
       for (let k = -nPerSide; k <= nPerSide; k++) {
         if (Math.abs(k) < 1) continue
         const cp = k * panelW
-        let cx, cz, fz, fx
-        if (side < 2) { cx = cp; cz = side === 0 ? -inset : inset; fz = cz; fx = 0 }
-        else { cx = side === 2 ? -inset : inset; cz = cp; fx = cx; fz = 0 }
+        const cx = isX ? cp : baseX
+        const cz = isX ? baseZ : cp
 
-        const div = new THREE.Mesh(new THREE.BoxGeometry(0.03, 4.0, 0.03), frameMat)
-        div.position.set(cx, 3.0, cz)
-        this.scene.add(div); this.decorations.push(div)
+        const recessed = new THREE.Mesh(new THREE.BoxGeometry(isX ? panelW - panelGap : 0.06, 4.8, isX ? 0.06 : panelW - panelGap), panelMat)
+        recessed.position.set(cx, 3.0, cz)
+        this.scene.add(recessed); this.decorations.push(recessed)
 
-        for (const py of [1.8, 4.2]) {
-          const pw = panelW - 0.6
-          const ph = 1.0
-          const fd = 0.015
-          const isXWall = side < 2
-          const bars = isXWall
-            ? [
-                { s: [0.02, ph, fd], p: [cx - pw / 2, py, fz] },
-                { s: [0.02, ph, fd], p: [cx + pw / 2, py, fz] },
-                { s: [pw, 0.02, fd], p: [cx, py - ph / 2, fz] },
-                { s: [pw, 0.02, fd], p: [cx, py + ph / 2, fz] }
-              ]
-            : [
-                { s: [fd, ph, 0.02], p: [fx, py, cz - pw / 2] },
-                { s: [fd, ph, 0.02], p: [fx, py, cz + pw / 2] },
-                { s: [fd, 0.02, pw], p: [fx, py - ph / 2, cz] },
-                { s: [fd, 0.02, pw], p: [fx, py + ph / 2, cz] }
-              ]
-          for (const b of bars) {
-            const bar = new THREE.Mesh(new THREE.BoxGeometry(...b.s), frameMat)
-            bar.position.set(...b.p)
-            this.scene.add(bar); this.decorations.push(bar)
+        const border = new THREE.Mesh(new THREE.BoxGeometry(isX ? panelW : 0.08, 5.0, isX ? 0.08 : panelW), frameMat)
+        border.position.set(cx, 3.0, cz)
+        this.scene.add(border); this.decorations.push(border)
+
+        if (k % 2 === 0) {
+          const screen = new THREE.Mesh(new THREE.BoxGeometry(isX ? panelW * 0.5 : 0.025, 0.25, isX ? 0.025 : panelW * 0.5), greenMat)
+          screen.position.set(cx, 2.5, cz)
+          this.scene.add(screen); this.decorations.push(screen)
+        } else {
+          for (const yy of [1.5, 4.0]) {
+            const slot = new THREE.Mesh(new THREE.BoxGeometry(isX ? 0.02 : 0.04, 0.5, isX ? 0.04 : 0.02), frameMat)
+            slot.position.set(cx, yy, cz)
+            this.scene.add(slot); this.decorations.push(slot)
           }
         }
       }
     }
 
-    for (const [x, y, z, w, hh, d] of [
-      [0, 3.0, -inset, this.size, 0.06, 0.04],
-      [0, 3.0, inset, this.size, 0.06, 0.04],
-      [-inset, 3.0, 0, 0.04, 0.06, this.size],
-      [inset, 3.0, 0, 0.04, 0.06, this.size]
-    ]) {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), railMat)
-      rail.position.set(x, y, z)
-      this.scene.add(rail); this.decorations.push(rail)
-    }
-
-    for (const yOff of [-0.08, 0.08]) {
+    for (const yPos of [0.15, 5.5]) {
       for (const [x, y, z, w, hh, d] of [
-        [0, 3.0 + yOff, -inset, this.size, 0.015, 0.035],
-        [0, 3.0 + yOff, inset, this.size, 0.015, 0.035],
-        [-inset, 3.0 + yOff, 0, 0.035, 0.015, this.size],
-        [inset, 3.0 + yOff, 0, 0.035, 0.015, this.size]
+        [0, yPos, -inset, this.size, 0.04, 0.04],
+        [0, yPos, inset, this.size, 0.04, 0.04],
+        [-inset, yPos, 0, 0.04, 0.04, this.size],
+        [inset, yPos, 0, 0.04, 0.04, this.size]
       ]) {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), yOff < 0 ? greenMat : stripMat)
-        strip.position.set(x, y, z)
-        this.scene.add(strip); this.decorations.push(strip)
-      }
-    }
-
-    for (const yPos of [0.1, 5.5]) {
-      for (const [x, y, z, w, hh, d] of [
-        [0, yPos, -inset, this.size, 0.03, 0.03],
-        [0, yPos, inset, this.size, 0.03, 0.03],
-        [-inset, yPos, 0, 0.03, 0.03, this.size],
-        [inset, yPos, 0, 0.03, 0.03, this.size]
-      ]) {
-        const glow = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), stripMat)
+        const glow = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), glowMat)
         glow.position.set(x, y, z)
         this.scene.add(glow); this.decorations.push(glow)
       }
@@ -321,7 +316,7 @@ export class Level2 {
 
     const rackRows = this.isTraining
       ? [[-5, 0], [5, 0], [-12, -7], [12, 7]]
-      : [[-5, 0], [5, 0], [-10, -6], [10, 6], [-10, 6], [10, -6]]
+      : [[-6, 0], [6, 0], [-10, -5], [10, 5], [-8, 8], [8, -8]]
 
     for (const [rx, rz] of rackRows) {
       const count = this.isTraining ? 3 : 4
@@ -384,7 +379,7 @@ export class Level2 {
 
     const placements = this.isTraining
       ? [[-8, 0.6, -8], [8, 0.6, 8]]
-      : [[-7, 0.6, -3], [7, 0.6, 3], [-3, 0.6, 7], [3, 0.6, -7]]
+      : [[-8, 0.6, -4], [8, 0.6, 4], [-4, 0.6, 8], [4, 0.6, -8]]
 
     for (const [wx, wy, wz] of placements) {
       const plank = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 1.5), walkMat)
@@ -433,10 +428,10 @@ export class Level2 {
     const h = this.halfSize
 
     const elevated = [
-      { x: -9, z: -9, w: 2.5, h: 0.8, s: 2.0 },
-      { x: 9, z: 9, w: 2.5, h: 0.8, s: 2.0 },
-      { x: -9, z: 9, w: 2.5, h: 0.6, s: 1.8 },
-      { x: 9, z: -9, w: 2.5, h: 0.6, s: 1.8 }
+      { x: -10, z: -10, w: 2.5, h: 0.8, s: 2.0 },
+      { x: 10, z: 10, w: 2.5, h: 0.8, s: 2.0 },
+      { x: -10, z: 10, w: 2.5, h: 0.6, s: 1.8 },
+      { x: 10, z: -10, w: 2.5, h: 0.6, s: 1.8 }
     ]
     for (const e of elevated) {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(e.w, e.h, e.s), platMat)
@@ -517,8 +512,8 @@ export class Level2 {
 
     const positions = this.isTraining
       ? [[-10, 3.0, -10, 2.5], [10, 3.0, -10, 2.5], [-10, 3.0, 10, 2.5], [10, 3.0, 10, 2.5]]
-      : [[-7, 3.0, -7, 2], [7, 3.0, -7, 2], [-7, 3.0, 7, 2], [7, 3.0, 7, 2],
-         [-12, 2.5, -6, 1.8], [12, 2.5, 6, 1.8], [-6, 2.5, -12, 1.8], [6, 2.5, 12, 1.8]]
+      : [[-9, 3.0, -9, 2], [9, 3.0, -9, 2], [-9, 3.0, 9, 2], [9, 3.0, 9, 2],
+         [-14, 2.5, -7, 1.8], [14, 2.5, 7, 1.8], [-7, 2.5, -14, 1.8], [7, 2.5, 14, 1.8]]
 
     for (const [px, ph, pz, ps] of positions) {
       const hs = ps / 2
@@ -686,9 +681,9 @@ export class Level2 {
     const amb = new THREE.AmbientLight(0x446688, 0.5)
     this.scene.add(amb); this.lights.push(amb)
 
-    const spread = this.isTraining ? 8 : 5
+    const spread = this.isTraining ? 8 : 6
     const lc = this.isHard ? 0x6688ff : 0x4488ff
-    const li = this.isTraining ? 4.5 : this.isHard ? 3.0 : 4.0
+    const li = this.isTraining ? 4.5 : this.isHard ? 3.5 : 4.5
 
     const positions = [[0, 5.5, 0],
       [-spread, 5.5, -spread], [spread, 5.5, -spread],
@@ -701,7 +696,7 @@ export class Level2 {
     })
 
     for (const [x, y, z] of positions) {
-      const light = new THREE.PointLight(lc, li, this.isTraining ? 28 : 22)
+      const light = new THREE.PointLight(lc, li, this.isTraining ? 28 : 26)
       light.position.set(x, y, z)
       this.scene.add(light)
       this.lights.push(light)
@@ -720,7 +715,7 @@ export class Level2 {
     })
 
     const n = this.isTraining ? 4 : 2
-    const r = this.halfSize - 2
+    const r = this.halfSize - 1.5
     for (let i = 0; i < n; i++) {
       const angle = (i / n) * Math.PI * 2 + 0.3
       const tx = Math.cos(angle) * r
@@ -745,7 +740,7 @@ export class Level2 {
   buildConduits() {
     const pipeMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness: 0.8, roughness: 0.3 })
     const jointMat = new THREE.MeshStandardMaterial({ color: C.cyan, emissive: C.cyan, emissiveIntensity: this.isHard ? 0.15 : 0.3, transparent: true, opacity: 0.15 })
-    const h = this.halfSize - 1
+    const h = this.halfSize - 1.5
     const placements = [[-h, -h * 0.4], [h, -h * 0.4], [-h, h * 0.4], [h, h * 0.4]]
     for (const [px, pz] of placements) {
       const dir = Math.random() > 0.5 ? 'x' : 'z'
@@ -767,7 +762,7 @@ export class Level2 {
     const wireMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness: 0.8, roughness: 0.3 })
     const fixMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, metalness: 0.7, roughness: 0.4 })
     const glowMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI * 2 })
-    const h = this.halfSize - 1
+    const h = this.halfSize - 1.5
     for (const [px, pz] of [[-h * 0.6, -h * 0.6], [h * 0.6, -h * 0.6], [-h * 0.6, h * 0.6], [h * 0.6, h * 0.6]]) {
       const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 4), wireMat)
       wire.position.set(px, 5.7, pz); this.scene.add(wire); this.decorations.push(wire)
@@ -782,7 +777,7 @@ export class Level2 {
     const gc = 0x00f2ff
     const eI = this.isHard ? 0.1 : 0.2
     const stripMat = new THREE.MeshStandardMaterial({ color: gc, emissive: gc, emissiveIntensity: eI, transparent: true, opacity: 0.08 })
-    const h = this.halfSize - 1
+    const h = this.halfSize - 1.5
     for (const [x, z, w, d] of [[0, -h * 0.7, h * 0.4, 0.025], [0, h * 0.7, h * 0.4, 0.025], [-h * 0.7, 0, 0.025, h * 0.4], [h * 0.7, 0, 0.025, h * 0.4]]) {
       const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.005, d), stripMat)
       strip.position.set(x, 0.015, z); this.scene.add(strip); this.floorMeshes.push(strip)
