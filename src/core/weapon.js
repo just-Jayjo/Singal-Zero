@@ -180,7 +180,7 @@ class WeaponBase {
 
   applyRecoil() {
     this._recoilKick = this.recoilVisualKick
-    this._recoilRotKick = (Math.random() - 0.5) * this.recoilVisualKick * 0.6
+    this._recoilRotKick = this.recoilVisualKick * 0.8 + (Math.random() - 0.5) * this.recoilVisualKick * 0.4
     if (this.player && this.player.applyRecoil) {
       this.player.applyRecoil(this.recoilAmount * (0.8 + Math.random() * 0.4))
     }
@@ -361,8 +361,8 @@ class PulsePistol extends WeaponBase {
     this.name = '脈衝手槍'
     this.damage = 13
     this.fireRate = 0.15
-    this.recoilAmount = 0.03
-    this.recoilVisualKick = 0.045
+    this.recoilAmount = 0.05
+    this.recoilVisualKick = 0.07
     this.magazineSize = 20
     this.currentAmmo = 20
     this.reserveAmmo = 60
@@ -468,8 +468,8 @@ class BurstRifle extends WeaponBase {
     this.name = '連發步槍'
     this.damage = 8
     this.fireRate = 0.45
-    this.recoilAmount = 0.025
-    this.recoilVisualKick = 0.035
+    this.recoilAmount = 0.04
+    this.recoilVisualKick = 0.06
     this.magazineSize = 25
     this.currentAmmo = 25
     this.reserveAmmo = 75

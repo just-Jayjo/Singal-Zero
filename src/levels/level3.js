@@ -458,7 +458,7 @@ export class Level3 {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(3, 0.6, 3), bodyMat)
       plat.position.set(tx, 0.3, tz)
       plat.castShadow = true; plat.receiveShadow = true
-      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
+      this.scene.add(plat); this.decorations.push(plat)
 
       const glow = new THREE.Mesh(new THREE.BoxGeometry(3.08, 0.02, 3.08), glowMat)
       glow.position.set(tx, 0.61, tz)
@@ -468,7 +468,7 @@ export class Level3 {
         const ramp = new THREE.Mesh(new THREE.BoxGeometry(rdx !== 0 ? 0.35 : 1.2, 0.08, rdz !== 0 ? 0.35 : 1.2), rampMat)
         ramp.position.set(tx + rdx * 1.8, 0.04, tz + rdz * 1.8)
         ramp.receiveShadow = true
-        this.scene.add(ramp); this.decorations.push(ramp); this.walls.push(ramp)
+        this.scene.add(ramp); this.decorations.push(ramp)
       }
     }
   }

@@ -527,7 +527,7 @@ export class Level4 {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 2.5), raisedMat)
       plat.position.set(tx, 0.3, tz)
       plat.castShadow = true; plat.receiveShadow = true
-      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
+      this.scene.add(plat); this.decorations.push(plat)
 
       const strip = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.02, 2.58), glowMat)
       strip.position.set(tx, 0.61, tz)

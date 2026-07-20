@@ -286,7 +286,6 @@ export class Level5 {
     base.castShadow = true
     this.scene.add(base)
     this.decorations.push(base)
-    this.walls.push(base)
 
     const edge = new THREE.Mesh(
       new THREE.TorusGeometry(pw / 2, 0.06, 8, 24),
@@ -423,7 +422,6 @@ export class Level5 {
       plat.castShadow = true
       this.scene.add(plat)
       this.decorations.push(plat)
-      this.walls.push(plat)
 
       const lip = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.03, 3.1), edgeMat)
       lip.position.set(x, 0.515, z)
@@ -436,7 +434,6 @@ export class Level5 {
         ramp.rotation.x = 0.15
         this.scene.add(ramp)
         this.decorations.push(ramp)
-        this.walls.push(ramp)
       }
     }
   }
