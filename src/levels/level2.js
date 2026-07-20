@@ -184,14 +184,14 @@ export class Level2 {
       const ramp = new THREE.Mesh(new THREE.BoxGeometry(3.0, rh, 1.5), rampMat)
       ramp.position.set(rx, rh/2, rz); ramp.rotation.x = 0.15
       ramp.castShadow = true; ramp.receiveShadow = true
-      this.scene.add(ramp); this.decorations.push(ramp)
+      this.scene.add(ramp); this.decorations.push(ramp); this.walls.push(ramp)
     }
     const platforms = this.isTraining ? [[-12,0.6,0,3],[12,0.6,0,3],[0,0.6,-12,3],[0,0.6,12,3]] : [[-8,0.5,0,3],[8,0.5,0,3],[0,0.5,-8,3],[0,0.5,8,3]]
     for (const [px, ph, pz, ps] of platforms) {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(ps, ph, ps), platMat)
       plat.position.set(px, ph/2, pz)
       plat.receiveShadow = true; plat.castShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
+      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
       const lip = new THREE.Mesh(new THREE.BoxGeometry(ps+0.1, 0.03, ps+0.1), edgeMat)
       lip.position.set(px, ph+0.015, pz)
       this.scene.add(lip); this.decorations.push(lip)
@@ -377,7 +377,7 @@ export class Level2 {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(es, eh, es), platMat)
       plat.position.set(ex, eh / 2, ez)
       plat.receiveShadow = true; plat.castShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
+      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
 
       const lip = new THREE.Mesh(new THREE.BoxGeometry(es + 0.1, 0.03, es + 0.1), edgeMat)
       lip.position.set(ex, eh + 0.015, ez)
@@ -393,7 +393,7 @@ export class Level2 {
             ez + Math.cos(angle) * (es / 2 + 0.3 + i * 0.35)
           )
           step.receiveShadow = true
-          this.scene.add(step); this.decorations.push(step)
+          this.scene.add(step); this.decorations.push(step); this.walls.push(step)
         }
       }
     }
@@ -666,7 +666,7 @@ export class Level2 {
   }
 
   buildAmmoPickups() {
-    const positions = [[-5, -5], [5, 5]]
+    const positions = [[-5, -5], [5, 5], [-10, 0], [10, 0]]
     for (const [x, z] of positions) {
       const bullet = createBulletPickup()
       bullet.position.set(x, 1.2, z)

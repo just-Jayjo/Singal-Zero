@@ -322,14 +322,14 @@ export class AudioManager {
     lfoGain.connect(organFil.frequency);
     organLfo.start();
 
-    /* Sub-bass */
+    /* Sub-bass (follows chord root) */
     const subGain = this.ctx.createGain();
     subGain.gain.setValueAtTime(0, now);
-    subGain.gain.linearRampToValueAtTime(0.35, now + 4);
+    subGain.gain.linearRampToValueAtTime(0.25, now + 4);
     subGain.connect(masterG);
     const subOsc = this.ctx.createOscillator();
     subOsc.type = 'sine';
-    subOsc.frequency.setValueAtTime(46.25, now);
+    subOsc.frequency.setValueAtTime(chords[0][0] / 2, now);
     subOsc.start();
     subOsc.connect(subGain);
 
@@ -493,6 +493,55 @@ export class AudioManager {
       osc.stop(t + 0.35);
     };
 
+    /* Ride cymbal */
+    const _playRide = () => {
+      const t = this.ctx.currentTime;
+      const dur = 0.06;
+      const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(1200, t);
+      bp.Q.value = 1.2;
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(masterG);
+      g.connect(verbG);
+      src.start(t);
+      src.stop(t + dur);
+    };
+
+    /* Noise sweep riser before chord change */
+    const _playRiser = () => {
+      const t = this.ctx.currentTime;
+      const dur = 0.6;
+      const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(200, t);
+      bp.frequency.exponentialRampToValueAtTime(4000, t + dur);
+      bp.Q.value = 2.0;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.04, t + dur * 0.4);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(masterG);
+      src.start(t);
+      src.stop(t + dur);
+    };
+
     /* Chord change */
     const _setChord = () => {
       const c = chords[chordIdx % chords.length];
@@ -566,6 +615,7 @@ export class AudioManager {
 
     /* Sequencer */
     const stepMs = 286;
+    let leadVariant = false;
     this._seqInterval = setInterval(() => {
       if (this._bgmStop) return;
       const b = beat % 16;
@@ -576,8 +626,13 @@ export class AudioManager {
       if (b === 2 || b === 6 || b === 10 || b === 14) _playCowbell();
       if (b === 7 || b === 15) _playHat(true);
       if (b % 4 === 0) _playBass();
+      if (b === 4) _playRide();
       if (b === 12) _playArp();
-      if (b === 0) _playLead();
+      if (b === 0) {
+        _playLead();
+        if (leadVariant && beat > 0) _playRiser();
+        leadVariant = !leadVariant;
+      }
       if (b === 8) _playChime();
       if (b === 0) {
         _setChord();
@@ -635,10 +690,10 @@ export class AudioManager {
     distG.connect(shaper);
     shaper.connect(masterG);
 
-    /* Dark pad (less warm, more aggressive) */
+    /* Dark pad (richer: 5 oscillators + LFO modulation) */
     const padFil = this.ctx.createBiquadFilter();
     padFil.type = 'lowpass';
-    padFil.frequency.setValueAtTime(250, now);
+    padFil.frequency.setValueAtTime(350, now);
     padFil.Q.value = 2.0;
     const padGain = this.ctx.createGain();
     padGain.gain.setValueAtTime(0, now);
@@ -647,11 +702,22 @@ export class AudioManager {
     padGain.connect(masterG);
     padGain.connect(verbG);
 
+    const padLfo = this.ctx.createOscillator();
+    padLfo.type = 'sine';
+    padLfo.frequency.setValueAtTime(0.06, now);
+    const padLfoG = this.ctx.createGain();
+    padLfoG.gain.setValueAtTime(80, now);
+    padLfo.connect(padLfoG);
+    padLfoG.connect(padFil.frequency);
+    padLfo.start();
+
     const padOscs = [];
     const padDefs = [
+      { type: 'sawtooth', det: -24, gain: 0.08 },
       { type: 'sawtooth', det: -12, gain: 0.10 },
       { type: 'sawtooth', det: 0, gain: 0.08 },
-      { type: 'square', det: 7, gain: 0.04 },
+      { type: 'square', det: 7, gain: 0.05 },
+      { type: 'sine', det: 5, gain: 0.04 },
     ];
     for (const v of padDefs) {
       const osc = this.ctx.createOscillator();
@@ -677,14 +743,14 @@ export class AudioManager {
     bassOsc.start();
     bassOsc.connect(bassG);
 
-    /* Sub */
+    /* Sub (follows chord root) */
     const subGain = this.ctx.createGain();
     subGain.gain.setValueAtTime(0, now);
     subGain.gain.linearRampToValueAtTime(0.4, now + 4);
     subGain.connect(masterG);
     const subOsc = this.ctx.createOscillator();
     subOsc.type = 'sine';
-    subOsc.frequency.setValueAtTime(46.25, now);
+    subOsc.frequency.setValueAtTime(chords[0][0] / 2, now);
     subOsc.start();
     subOsc.connect(subGain);
 
@@ -776,6 +842,57 @@ export class AudioManager {
       }
     };
 
+    /* Noise sweep riser */
+    const _playRiser = () => {
+      const t = this.ctx.currentTime;
+      const dur = 0.5;
+      const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(300, t);
+      bp.frequency.exponentialRampToValueAtTime(6000, t + dur);
+      bp.Q.value = 1.5;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.06, t + dur * 0.3);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(masterG);
+      g.connect(verbG);
+      src.start(t);
+      src.stop(t + dur);
+    };
+
+    /* Crash accent on chord change */
+    const _playCrash = () => {
+      const t = this.ctx.currentTime;
+      const dur = 0.4;
+      const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        const env = Math.exp(-i / (d.length * 0.1));
+        d[i] = (Math.random() * 2 - 1) * env;
+      }
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const hp = this.ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.setValueAtTime(3000, t);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.15, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      src.connect(hp);
+      hp.connect(g);
+      g.connect(verbG);
+      src.start(t);
+      src.stop(t + dur);
+    };
+
     /* Chord change */
     const _setChord = () => {
       const c = chords[chordIdx % chords.length];
@@ -794,19 +911,22 @@ export class AudioManager {
       const b = beat % 16;
 
       if (b % 4 === 0) _playKick();
-      if (b % 4 === 2) _playKick(); /* double kick */
+      if (b % 4 === 2) _playKick();
       if (b % 4 === 3) _playSnare();
       if (b % 2 === 1) _playHat(false);
       if (b === 7 || b === 15) _playHat(true);
-      if (b === 0) _playLead();
+      if (b === 4) _playRiser();
       if (b === 0) {
+        _playLead();
+        if (beat > 0) _playCrash();
+        _playRiser();
         _setChord();
         if (beat > 0) chordIdx = (chordIdx + 1) % chords.length;
       }
       beat++;
     }, stepMs);
 
-    this._bgmNodes = [subGain, subOsc, padFil, padGain, ...padOscs, bassG, bassOsc, distG, shaper,
+    this._bgmNodes = [subGain, subOsc, padFil, padGain, padLfo, padLfoG, ...padOscs, bassG, bassOsc, distG, shaper,
       verbG, delay1, delayFeed1];
     return () => { this.stopBGM(); };
   }

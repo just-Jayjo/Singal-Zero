@@ -21,6 +21,10 @@ class WeaponBase {
     this.spread = 0.02
     this.auto = false
     this.lastTarget = null
+    this.recoilAmount = 0.02
+    this.recoilVisualKick = 0.03
+    this._recoilKick = 0
+    this._recoilRotKick = 0
   }
 
   reset() {
@@ -29,6 +33,8 @@ class WeaponBase {
     this.isReloading = false
     this.reloadTimer = 0
     this.fireTimer = 0
+    this._recoilKick = 0
+    this._recoilRotKick = 0
     if (this._trails) {
       for (const t of this._trails) {
         this.scene.remove(t.mesh)
@@ -74,6 +80,12 @@ class WeaponBase {
 
   update(delta) {
     if (this.fireTimer > 0) this.fireTimer -= delta
+    if (this._recoilKick > 0.001) {
+      this._recoilKick *= (1 - delta * 18)
+    } else { this._recoilKick = 0 }
+    if (Math.abs(this._recoilRotKick) > 0.001) {
+      this._recoilRotKick *= (1 - delta * 15)
+    } else { this._recoilRotKick = 0 }
     if (this.isReloading) {
       this.reloadTimer -= delta
       if (this.reloadTimer <= 0) {
@@ -104,14 +116,15 @@ class WeaponBase {
     const bX = Math.sin(bob * 2) * 0.008
     const bY = Math.abs(Math.sin(bob)) * 0.01
 
+    const recoilBack = this._recoilKick * 0.4
     const offset = new THREE.Vector3()
       .addScaledVector(right, 0.40 + bX)
       .addScaledVector(up, -0.12 - bY)
-      .addScaledVector(forward, 0.55)
+      .addScaledVector(forward, 0.55 - recoilBack)
     this.mesh.position.copy(pos).add(offset)
 
     this.mesh.quaternion.copy(quat)
-    this.mesh.rotateX(0.06 + Math.sin(bob * 2) * 0.02)
+    this.mesh.rotateX(0.06 + Math.sin(bob * 2) * 0.02 + this._recoilRotKick)
     this.mesh.rotateY(0.12 + Math.sin(bob) * 0.015)
     this.mesh.rotateZ(0.03)
     this.mesh.scale.setScalar(1.1)
@@ -164,6 +177,15 @@ class WeaponBase {
     thumb.rotation.z = 0.4
     group.add(thumb)
   }
+
+  applyRecoil() {
+    this._recoilKick = this.recoilVisualKick
+    this._recoilRotKick = (Math.random() - 0.5) * this.recoilVisualKick * 0.6
+    if (this.player && this.player.applyRecoil) {
+      this.player.applyRecoil(this.recoilAmount * (0.8 + Math.random() * 0.4))
+    }
+  }
+
   shoot(enemies, camera, level) {
     if (this.isReloading) return null
     if (this.currentAmmo <= 0) {
@@ -216,9 +238,15 @@ class WeaponBase {
         this.createMuzzleFlash()
         this.createImpactSpark(hits[0].point)
         if (this.audio) this.audio.playHitMarker()
+        const endPoint = hits[0].point
+        if (this.trailColor) this.createBulletTrail(camera.position, endPoint, this.trailColor)
+        this.applyRecoil()
         return true
       }
     }
+    const missEnd = camera.position.clone().add(dir.clone().multiplyScalar(Math.min(wallDist, this.range)))
+    if (this.trailColor) this.createBulletTrail(camera.position, missEnd, this.trailColor)
+    this.applyRecoil()
     return false
   }
 
@@ -333,9 +361,11 @@ class PulsePistol extends WeaponBase {
     this.name = '脈衝手槍'
     this.damage = 13
     this.fireRate = 0.15
-    this.magazineSize = 15
-    this.currentAmmo = 15
-    this.reserveAmmo = 45
+    this.recoilAmount = 0.03
+    this.recoilVisualKick = 0.045
+    this.magazineSize = 20
+    this.currentAmmo = 20
+    this.reserveAmmo = 60
     this.reloadTime = 0.8
     this.range = 55
     this.spread = 0.03
@@ -438,9 +468,11 @@ class BurstRifle extends WeaponBase {
     this.name = '連發步槍'
     this.damage = 8
     this.fireRate = 0.45
-    this.magazineSize = 15
-    this.currentAmmo = 15
-    this.reserveAmmo = 45
+    this.recoilAmount = 0.025
+    this.recoilVisualKick = 0.035
+    this.magazineSize = 25
+    this.currentAmmo = 25
+    this.reserveAmmo = 75
     this.reloadTime = 1.2
     this.range = 65
     this.spread = 0.04
@@ -634,10 +666,16 @@ class BurstRifle extends WeaponBase {
         hitEnemy.takeDamage(this.damage * dmgMult, hits[0])
         this.createImpactSpark(hits[0].point)
         if (this.audio) this.audio.playHitMarker()
+        const endPoint = hits[0].point
+        if (this.trailColor) this.createBulletTrail(this._burstCamera.position, endPoint, this.trailColor)
       }
+    } else {
+      const missEnd = this._burstCamera.position.clone().add(dir.clone().multiplyScalar(Math.min(wallDist, this.range)))
+      if (this.trailColor) this.createBulletTrail(this._burstCamera.position, missEnd, this.trailColor)
     }
 
     this.createMuzzleFlash()
+    this.applyRecoil()
   }
 
   update(delta) {

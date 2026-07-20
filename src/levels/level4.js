@@ -46,7 +46,7 @@ export class Level4 {
     this.buildFloor()
     this.buildPerimeterWalls()
     this.buildCrumbledStructures()
-    this.buildHangingCables()
+    this.buildFloorCables()
     this.buildWarningBarriers()
     this.buildElevatedPlatforms()
     this.buildLighting()
@@ -248,7 +248,7 @@ export class Level4 {
       wall.rotation.y = Math.random() * Math.PI
       wall.rotation.z = tilt
       wall.castShadow = true; wall.receiveShadow = true
-      this.scene.add(wall); this.decorations.push(wall)
+      this.scene.add(wall); this.decorations.push(wall); this.walls.push(wall)
 
       if (Math.random() > 0.5) {
         const beam = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.3), structMat2)
@@ -274,34 +274,45 @@ export class Level4 {
     }
   }
 
-  buildHangingCables() {
-    const cableMat = new THREE.MeshStandardMaterial({ color: 0x1a1814, roughness: 0.8, metalness: 0.3 })
-    const sparkMat = new THREE.MeshStandardMaterial({
-      color: 0xffaa00, emissive: 0xff8800, emissiveIntensity: 1.0
-    })
+  buildFloorCables() {
+    const cableMat = new THREE.MeshStandardMaterial({ color: 0x1a1814, roughness: 0.9, metalness: 0.2 })
+    const stripeMat = new THREE.MeshStandardMaterial({ color: 0xff8800, emissive: 0xff6600, emissiveIntensity: 0.15 })
+    const glowMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff8800, emissiveIntensity: 0.5 })
 
-    const cablePositions = this.isTraining
-      ? [[-8, 5.0, -8], [8, 5.0, 8]]
-      : [[-10, 5.0, -10], [10, 5.0, 10]]
+    const cablePaths = this.isTraining
+      ? [[[-10, -9], [-8, -7], [-6, -8], [-4, -6], [-2, -7], [0, -5]],
+         [[10, 9], [8, 7], [6, 8], [4, 6], [2, 7], [0, 5]]]
+      : [[[-8, -7], [-5, -6], [-3, -4], [-1, -5], [1, -3], [3, -4]],
+         [[8, 7], [5, 6], [3, 4], [1, 5], [-1, 3], [-3, 4]]]
 
-    for (const [cx, cy, cz] of cablePositions) {
-      const segs = 4 + Math.floor(Math.random() * 4)
-      for (let i = 0; i < segs; i++) {
-        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.4 + Math.random() * 0.3, 6), cableMat)
-        seg.position.set(
-          cx + (Math.random() - 0.5) * 0.3,
-          cy - i * 0.5 - 0.2,
-          cz + (Math.random() - 0.5) * 0.3
-        )
-        seg.rotation.z = (Math.random() - 0.5) * 0.3
-        seg.rotation.x = (Math.random() - 0.5) * 0.3
+    for (const path of cablePaths) {
+      for (let i = 0; i < path.length - 1; i++) {
+        const [x1, z1] = path[i]
+        const [x2, z2] = path[i + 1]
+        const dx = x2 - x1, dz = z2 - z1
+        const len = Math.sqrt(dx * dx + dz * dz)
+        const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2
+        const angle = Math.atan2(dx, dz)
+
+        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, len, 6), cableMat)
+        seg.rotation.x = Math.PI / 2
+        seg.rotation.z = angle
+        seg.position.set(cx, 0.02, cz)
+        seg.receiveShadow = true
         this.scene.add(seg); this.decorations.push(seg)
+
+        const stripe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, len * 0.3, 6), stripeMat)
+        stripe.rotation.x = Math.PI / 2
+        stripe.rotation.z = angle
+        stripe.position.set(cx + (Math.random() - 0.5) * len * 0.5, 0.025, cz + (Math.random() - 0.5) * len * 0.5)
+        this.scene.add(stripe); this.decorations.push(stripe)
       }
 
-      if (Math.random() > 0.5) {
-        const spark = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 6), sparkMat)
-        spark.position.set(cx + (Math.random() - 0.5) * 0.2, cy - segs * 0.5 - 0.1, cz + (Math.random() - 0.5) * 0.2)
-        this.scene.add(spark); this.decorations.push(spark)
+      if (Math.random() > 0.4) {
+        const last = path[path.length - 1]
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), glowMat)
+        glow.position.set(last[0] + (Math.random() - 0.5) * 0.3, 0.04, last[1] + (Math.random() - 0.5) * 0.3)
+        this.scene.add(glow); this.decorations.push(glow)
       }
     }
   }
@@ -516,7 +527,7 @@ export class Level4 {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 2.5), raisedMat)
       plat.position.set(tx, 0.3, tz)
       plat.castShadow = true; plat.receiveShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
+      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
 
       const strip = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.02, 2.58), glowMat)
       strip.position.set(tx, 0.61, tz)
@@ -662,7 +673,7 @@ export class Level4 {
   }
 
   buildAmmoPickups() {
-    const positions = [[-5, -5], [5, 5]]
+    const positions = [[-5, -5], [5, 5], [-10, 0], [10, 0]]
     for (const [x, z] of positions) {
       const bullet = createBulletPickup()
       bullet.position.set(x, 1.2, z); this.scene.add(bullet)

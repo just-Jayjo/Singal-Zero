@@ -31,6 +31,8 @@ export class Player {
     this._pointerLockFrame = 0
     this._shakeIntensity = 0
     this._shakeDuration = 0
+    this._recoilPitch = 0
+    this._recoilRecovery = 8
     this.jumping = false
     this.jumpVelocity = 0
     this._jumpPressed = false
@@ -57,6 +59,7 @@ export class Player {
     this._pointerLockFrame = 0
     this._shakeIntensity = 0
     this._shakeDuration = 0
+    this._recoilPitch = 0
     this.jumping = false
     this.jumpVelocity = 0
     this._jumpPressed = false
@@ -67,6 +70,11 @@ export class Player {
     this._shakeDuration = duration
   }
 
+  applyRecoil(amount) {
+    this._recoilPitch += amount
+    this._recoilPitch = Math.max(-0.25, Math.min(0.25, this._recoilPitch))
+  }
+
   onMouseMove(event) {
     if (this._pointerLockFrame < 3) { this._pointerLockFrame++; return }
     this.yaw -= event.movementX * this.mouseSensitivity
@@ -74,7 +82,7 @@ export class Player {
     this.pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, this.pitch))
     this.camera.rotation.order = 'YXZ'
     this.camera.rotation.y = this.yaw
-    this.camera.rotation.x = this.pitch
+    this.camera.rotation.x = this.pitch + this._recoilPitch
   }
 
   onKeyDown(event) {
@@ -210,6 +218,11 @@ export class Player {
       this.camera.position.y += (Math.random() - 0.5) * amount * 0.1
       this._shakeDuration -= delta * 1000
       if (this._shakeDuration <= 0) { this._shakeDuration = 0; this._shakeIntensity = 0 }
+    }
+
+    if (this._recoilPitch !== 0) {
+      this._recoilPitch -= Math.sign(this._recoilPitch) * delta * this._recoilRecovery
+      if (Math.abs(this._recoilPitch) < 0.001) this._recoilPitch = 0
     }
   }
 

@@ -1,5 +1,48 @@
 # PROGRESS — 訊號：零層
 
+## 2026-07-20 Session (Final) — 全五層雜物清除 + 地形起伏 + L4/L5 Boss 削弱
+
+### 美術重設計
+**全五層通用**
+- 移除：`buildConduits()`、`buildCeilingLights()`、`buildFloorGlow()`、`buildTerminals()`、`buildRobotDecorations()` — 小尺寸裝飾雜物全部刪除
+- 新增大型地形起伏區塊（raised platforms + lowered pits + ramps），取代被刪除的雜物
+- 保留所有 gameplay 必要結構（柱子、機櫃、冷卻槽、高台、祭壇等）
+
+**Level 1**: 移除 corridorWalls/bunkers/stackedCrates/robotDecorations/conduits/terminals/ceilingLights/floorGlow，新增 4 個 ±10 隆起平台（0.8m 高）+ 2 個凹陷坑（-0.6m）
+
+**Level 2**: 移除 elevatedWalkways/robotDecorations/terminals/conduits/ceilingLights/floorGlow，擴大 terrain ramps，新增 4 個 ±9 隆起板（0.8m）+ 2 個凹陷區（-0.5m），橋樑移除
+
+**Level 3**: 移除 pipeBridges/walkways/floorVents/ceilingLights/floorGlow/conduits/terminals/robotDecorations，新增 4 個 ±7 隆起區（0.6m）環繞中心競技場
+
+**Level 4**: 移除 debrisFields/ceilingLights/floorGlow/conduits/terminals/robotDecorations，crumbledStructures 減為 4 組角落、hangingCables 減為 2 條、warningBarriers 減為 4 組角落，新增 4 個 ±6 隆起平台 + 2 個凹陷坑
+
+**Level 5**: 移除 ceilingLights/floorGlow/conduits/terminals，刪除未使用的 buildTerrain/buildHeightFeatures/buildElevatedPlatforms/buildMonoliths/buildRobotDecorations，新增 4 個 ±8 階梯平台
+
+### 難度下調 — Level 4（Shield Guardian）
+- HP: 1000 → 800
+- 速度: 2.5 → 2.2，傷害: 6 → 5，射擊 CD: 1.8 → 2.2
+- 護盾啟動間隔: 6s → 8s，護盾持續: 5s → 4s
+- 狂怒（50% HP）速度: 3.2 → 2.8，CD: 1.2 → 1.5，傷害: 9 → 7
+- 衝擊波傷害: 5/8 → 4/6，CD: 6/5 → 8/6
+- 召喚小兵: 2 → 1 隻，CD: 10 → 12/14
+
+### 難度下調 — Level 5（Signal Core）
+- HP: 2500 → 2000
+- 階段門檻: 66%/33% → 50%/25%（更晚進入高難度）
+- Aimed Shot: 傷害 5/7/9 → 4/5/7，P3 連發 4→3
+- 追蹤光球: 數量 phase*2→phase*1，傷害 phase+4→phase+3
+- Orbital Burst 傷害: 4+phase*2 → 3+phase*1
+- Pulse Wave 傷害: 6+phase*3 → 4+phase*2
+- 飛彈: 4 → 3 枚
+- 雷射初始傷害 18→14，持續 DPS 8→6
+- Vortex 爆炸傷害 20→15
+- 召喚 CD: 15s → 18s
+- P3 近身 DPS: 6 → 4
+
+### Build
+- 34 modules, 852 KB, 0 errors, deployed to gh-pages
+- git commit `8966161`
+
 ## 2026-07-20 Session (Later) — Levels 2-4 空間與視覺重設計
 
 ### Changes

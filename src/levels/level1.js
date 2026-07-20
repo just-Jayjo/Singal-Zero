@@ -214,7 +214,7 @@ export class Level1 {
       const plat = new THREE.Mesh(new THREE.BoxGeometry(pSize, ph, pSize), platMat)
       plat.position.set(px, ph / 2, pz)
       plat.receiveShadow = true; plat.castShadow = true
-      this.scene.add(plat); this.decorations.push(plat)
+      this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
 
       const lip = new THREE.Mesh(new THREE.BoxGeometry(pSize + 0.1, 0.03, pSize + 0.1), edgeMat)
       lip.position.set(px, ph + 0.015, pz)
@@ -228,7 +228,7 @@ export class Level1 {
         if (dx !== 0) ramp.rotation.x = dx * 0.15
         else ramp.rotation.z = -dz * 0.15
         ramp.castShadow = true; ramp.receiveShadow = true
-        this.scene.add(ramp); this.decorations.push(ramp)
+        this.scene.add(ramp); this.decorations.push(ramp); this.walls.push(ramp)
 
         for (let i = 0; i < 3; i++) {
           const step = new THREE.Mesh(new THREE.BoxGeometry(dx !== 0 ? 0.6 : pSize * 0.4, 0.08, dz !== 0 ? 0.6 : pSize * 0.4), rampMat)
@@ -239,7 +239,7 @@ export class Level1 {
             step.position.set(px, t * ph, pz + dz * (pSize / 2 + 0.25 + i * 0.3))
           }
           step.receiveShadow = true
-          this.scene.add(step); this.decorations.push(step)
+          this.scene.add(step); this.decorations.push(step); this.walls.push(step)
         }
       }
 
@@ -584,7 +584,7 @@ export class Level1 {
     const plat = new THREE.Mesh(new THREE.BoxGeometry(pw, pd, pw), platMat)
     plat.position.set(0, pd / 2, 0)
     plat.receiveShadow = true; plat.castShadow = true
-    this.scene.add(plat); this.decorations.push(plat)
+    this.scene.add(plat); this.decorations.push(plat); this.walls.push(plat)
 
     const edge = new THREE.Mesh(
       new THREE.BoxGeometry(pw + 0.1, 0.05, pw + 0.1), edgeMat
@@ -601,7 +601,7 @@ export class Level1 {
       const step = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.12, sd), stepMat)
       step.position.set(sx, 0.06, sz)
       step.receiveShadow = true
-      this.scene.add(step); this.decorations.push(step)
+      this.scene.add(step); this.decorations.push(step); this.walls.push(step)
     }
 
     if (this.isTraining) {
@@ -834,8 +834,8 @@ export class Level1 {
   /* ── 彈藥拾取 ── */
   buildAmmoPickups() {
     const positions = this.isTraining
-      ? [[-24, -24], [24, 24], [-16, 0], [16, 0]]
-      : [[-14, -14], [14, 14], [0, -10], [0, 10]]
+      ? [[-24, -24], [24, 24], [-16, 0], [16, 0], [-24, 0], [0, -24], [0, 24]]
+      : [[-14, -14], [14, 14], [0, -10], [0, 10], [-20, -7], [20, 7]]
 
     for (const [x, z] of positions) {
       const bullet = createBulletPickup()
