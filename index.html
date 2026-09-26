@@ -2,7 +2,11 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#050a14">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a1420'/><circle cx='16' cy='16' r='6' fill='none' stroke='%2300f2ff' stroke-width='3'/></svg>">
   <title>訊號：零層 — Signal Zero</title>
   <style>
@@ -470,8 +474,291 @@
     .ico-triangle::before { content: ''; display: block; width: 0; height: 0; border-left: .35em solid transparent; border-right: .35em solid transparent; border-top: .5em solid currentColor; }
 
     .ico-arrow::before { content: ''; display: block; width: 0; height: 0; border-top: .3em solid transparent; border-bottom: .3em solid transparent; border-left: .45em solid currentColor; }
+
+    /* ===== 結尾電影黑邊 ===== */
+
+    #cinema-bars { position: fixed; inset: 0; z-index: 260; pointer-events: none; display: none; }
+
+    #cinema-bars .cb {
+      position: absolute; left: 0; right: 0; height: 0; background: #000;
+      transition: height 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 24px rgba(0,0,0,0.9);
+    }
+
+    #cinema-bars .cb-top { top: 0; }
+
+    #cinema-bars .cb-bottom { bottom: 0; }
+
+    body.ending-cinema #cinema-bars { display: block; }
+
+    body.ending-cinema #cinema-bars .cb { height: 10vh; }
+
+    /* ===== 橫屏提示 ===== */
+
+    #rotate-overlay {
+      position: fixed; inset: 0; z-index: 700;
+      background: rgba(5,10,20,0.98);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 26px; text-align: center;
+      color: #00f2ff; font-size: 1rem; letter-spacing: 0.25em;
+      padding: 20px;
+    }
+
+    #rotate-overlay .rot-phone {
+      width: 64px; height: 104px; border: 3px solid #00f2ff; border-radius: 9px;
+      position: relative; box-shadow: 0 0 30px rgba(0,242,255,0.25);
+      animation: rotPhone 2.6s ease-in-out infinite;
+    }
+
+    #rotate-overlay .rot-phone::after {
+      content: ''; position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%);
+      width: 18px; height: 3px; background: #00f2ff; border-radius: 2px;
+    }
+
+    #rotate-overlay .rot-sub { font-size: 0.7rem; color: rgba(0,242,255,0.4); letter-spacing: 0.3em; }
+
+    @keyframes rotPhone { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+
+    /* ===== 觸控控制 ===== */
+
+    #touch-controls { position: fixed; inset: 0; z-index: 30; pointer-events: none; display: none; }
+
+    body.touch-mode #touch-controls { display: block; }
+
+    body.touch-mode.ui-paused #touch-controls { display: none; }
+
+    body.ending-cinema #touch-controls { display: none; }
+
+    #joystick-zone { position: absolute; left: 0; top: 0; width: 45%; height: 100%; pointer-events: auto; touch-action: none; }
+
+    #aim-zone { position: absolute; right: 0; top: 0; width: 55%; height: 100%; pointer-events: auto; touch-action: none; }
+
+    #joystick-base {
+      position: absolute; width: 118px; height: 118px; border-radius: 50%;
+      border: 2px solid rgba(0,242,255,0.3); background: rgba(0,242,255,0.05);
+      transform: translate(-50%, -50%); display: none; pointer-events: none;
+      box-shadow: inset 0 0 24px rgba(0,242,255,0.06);
+    }
+
+    #joystick-base::before {
+      content: ''; position: absolute; inset: 26px; border-radius: 50%;
+      border: 1px dashed rgba(0,242,255,0.14);
+    }
+
+    #joystick-thumb {
+      position: absolute; width: 50px; height: 50px; border-radius: 50%;
+      background: rgba(0,242,255,0.3); border: 2px solid rgba(0,242,255,0.75);
+      transform: translate(-50%, -50%); display: none; pointer-events: none;
+      box-shadow: 0 0 16px rgba(0,242,255,0.35);
+    }
+
+    .touch-btn {
+      position: absolute; pointer-events: auto; touch-action: none;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5,16,28,0.5); border: 2px solid rgba(0,242,255,0.35);
+      color: rgba(0,242,255,0.85); font-family: inherit; cursor: pointer;
+      border-radius: 50%; -webkit-tap-highlight-color: transparent;
+      user-select: none; -webkit-user-select: none;
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      transition: background 0.12s, border-color 0.12s, transform 0.12s;
+    }
+
+    .touch-btn:active, .touch-btn.tb-on {
+      background: rgba(0,242,255,0.22); border-color: #00f2ff; transform: scale(0.94);
+    }
+
+    #btn-fire {
+      right: 22px; bottom: 24px; width: 84px; height: 84px;
+      font-size: 1.05rem; letter-spacing: 0.1em; z-index: 33;
+      border-color: rgba(0,242,255,0.5);
+    }
+
+    #btn-jump {
+      right: 124px; bottom: 30px; width: 66px; height: 66px;
+      font-size: 0.95rem; z-index: 33;
+    }
+
+    #btn-weapon {
+      right: 128px; bottom: 112px; width: 54px; height: 54px;
+      font-size: 1.1rem; z-index: 33;
+    }
+
+    #btn-menu {
+      left: 16px; top: 14px; width: 46px; height: 46px;
+      font-size: 1.15rem; z-index: 33; border-radius: 10px;
+    }
+
+    #btn-fire .bf-sub, #btn-jump .bj-sub {
+      position: absolute; bottom: -17px; left: 50%; transform: translateX(-50%);
+      font-size: 0.55rem; color: rgba(0,242,255,0.35); letter-spacing: 0.15em;
+      white-space: nowrap; pointer-events: none;
+    }
+
+    /* ===== 手機版 HUD 重排 ===== */
+
+    body.touch-mode #controls-hint { display: none !important; }
+
+    body.touch-mode #dev-indicator { display: none !important; }
+
+    /* HUD 內可互動元素（彈藥面板、下一層提示）需蓋過 touch 區域才點得到 */
+
+    body.touch-mode #hud { z-index: 35; }
+
+    body.touch-mode #hud::before, body.touch-mode #hud::after { display: none; }
+
+    body.touch-mode #ammo-panel {
+      top: 12px; right: 16px; bottom: auto; text-align: right;
+      pointer-events: auto; padding: 6px 10px;
+      background: rgba(5,16,28,0.4); border: 1px solid rgba(0,242,255,0.14);
+    }
+
+    body.touch-mode #ammo-display { font-size: 1.5rem; text-shadow: none; }
+
+    body.touch-mode #ammo-display .reserve { font-size: 0.75rem; }
+
+    body.touch-mode #weapon-name { font-size: 0.7rem; margin-top: 2px; }
+
+    body.touch-mode #ammo-panel:active { border-color: rgba(0,242,255,0.5); }
+
+    body.touch-mode #enemy-panel { top: 74px; left: 16px; }
+
+    body.touch-mode #enemy-panel .label { font-size: 0.62rem; margin-bottom: 2px; }
+
+    body.touch-mode #enemy-count { font-size: 1.15rem; }
+
+    body.touch-mode #health-panel {
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+      text-align: center; width: 190px;
+    }
+
+    body.touch-mode #health-panel .label { font-size: 0.6rem; margin-bottom: 3px; letter-spacing: 0.15em; }
+
+    body.touch-mode #health-bar { width: 190px; height: 15px; margin: 0 auto; }
+
+    body.touch-mode #health-num { right: -1px; top: -17px; font-size: 0.72rem; line-height: 1; }
+
+    body.touch-mode #real-health-bar .bar-wrap { width: 190px; height: 10px; margin: 0 auto; }
+
+    body.touch-mode #real-health-bar #real-health-num { right: -1px; top: -14px; font-size: 0.65rem; line-height: 1; }
+
+    body.touch-mode #kill-feed { top: 92px; right: 16px; font-size: 0.68rem; max-width: 40vw; }
+
+    body.touch-mode #boss-health-container { top: 62px; bottom: auto; }
+
+    body.touch-mode #boss-health-bar { width: min(300px, 62vw); height: 11px; }
+
+    body.touch-mode #boss-health-container .boss-label { font-size: 0.65rem; margin-bottom: 4px; }
+
+    body.touch-mode #level-hint {
+      top: auto; right: auto; left: 50%; bottom: 68px;
+      transform: translateX(-50%); font-size: 0.95rem;
+      pointer-events: auto; touch-action: manipulation; cursor: pointer;
+      padding: 10px 20px; text-align: center; white-space: nowrap;
+    }
+
+    body.touch-mode #reload-indicator { bottom: 52px; font-size: 0.72rem; }
+
+    body.touch-mode #wave-message { top: 44px; font-size: 0.95rem; }
+
+    body.touch-mode #wave-countdown { top: 76px; font-size: 0.7rem; }
+
+    body.touch-mode #datalog-popup { top: 100px; padding: 8px 16px; }
+
+    body.touch-mode #datalog-popup .dl-title { font-size: 0.8rem; }
+
+    body.touch-mode #training-exit-hud { top: 66px; right: auto; left: 16px; font-size: 0.6rem; padding: 5px 10px; }
+
+    body.touch-mode #enemy-profile { top: 106px; left: 16px; width: 178px; padding: 10px 12px; }
+
+    body.touch-mode #crosshair { width: 30px; height: 30px; }
+
+    /* ===== 暫停選單 ===== */
+
+    #pause-menu {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(5,10,20,0.94);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; user-select: none; -webkit-user-select: none;
+      padding: 20px;
+    }
+
+    #pause-menu .pm-panel {
+      border: 1px solid rgba(0,242,255,0.18); padding: 34px 44px 30px;
+      text-align: center; position: relative; min-width: 250px;
+      background: rgba(0,10,20,0.5);
+    }
+
+    #pause-menu .pm-panel::before {
+      content: 'PAUSED'; position: absolute; top: -10px; left: 22px;
+      background: rgba(5,10,20,0.94); padding: 0 12px;
+      color: rgba(0,242,255,0.55); font-size: 0.65rem; letter-spacing: 0.3em;
+    }
+
+    #pause-menu .pm-title {
+      font-size: 1.9rem; color: #fff; letter-spacing: 0.4em;
+      text-shadow: 0 0 40px rgba(0,242,255,0.5); font-weight: 400; margin-bottom: 24px;
+    }
+
+    #pause-menu .pm-btn {
+      display: block; width: 100%; margin: 7px 0;
+      background: transparent; border: 1px solid rgba(0,242,255,0.16);
+      color: rgba(255,255,255,0.72); padding: 13px 20px;
+      font-family: inherit; font-size: 0.92rem; letter-spacing: 0.2em;
+      cursor: pointer; transition: all 0.22s;
+    }
+
+    #pause-menu .pm-btn:hover, #pause-menu .pm-btn:active {
+      border-color: #00f2ff; color: #00f2ff; background: rgba(0,242,255,0.07);
+    }
+
+    #pause-menu .pm-btn.pm-danger:hover, #pause-menu .pm-btn.pm-danger:active {
+      border-color: #ff5555; color: #ff8888; background: rgba(255,60,60,0.08);
+    }
+
+    /* ===== 手機版文字尺寸（敘事 / 結尾） ===== */
+
+    @media (max-width: 900px), (max-height: 520px) {
+      .narrative-text { font-size: clamp(0.92rem, 2.6vw, 1.1rem) !important; max-width: min(560px, 88vw) !important; line-height: 1.65 !important; max-height: 64vh; overflow-y: auto; padding: 15px 15px !important; }
+      .narrative-prompt { font-size: 0.72rem !important; margin-top: 20px !important; }
+      #ending-overlay .ending-title { font-size: clamp(1.8rem, 6vw, 3.2rem) !important; }
+      #ending-overlay .ending-sub { font-size: clamp(0.9rem, 3vw, 1.3rem) !important; }
+      #ending-overlay .ending-detail { font-size: clamp(0.75rem, 2.4vw, 0.95rem) !important; }
+      #ending-overlay .ending-report { margin-top: 22px !important; }
+      #ending-overlay .ending-credits { margin-top: 24px !important; }
+      #ending-overlay .ending-final { margin-top: 16px !important; }
+      #ending-overlay .ending-stat { font-size: clamp(11px, 2.6vw, 13px) !important; }
+      #ending-overlay .ending-credit-line { font-size: clamp(9px, 2.2vw, 11px) !important; }
+      #blocker .title-area { padding: 40px 34px; }
+      #blocker .title-area h1 { font-size: clamp(2rem, 9vw, 4rem); letter-spacing: 0.25em; }
+      #blocker .title-area .sub { font-size: clamp(0.75rem, 3vw, 1rem); margin-bottom: 26px; }
+      #blocker .title-area .flash { font-size: 0.85rem; }
+      #blocker .title-area .sys-info { margin-top: 24px; font-size: 0.58rem; }
+      #difficulty-select .panel { padding: 30px 26px; width: min(92vw, 420px); }
+      #difficulty-select .panel .ds-title { font-size: clamp(1.7rem, 7vw, 3rem); }
+      #difficulty-select button { min-width: 0; width: 100%; padding: 13px 18px; font-size: 0.95rem; }
+      #results-screen .panel { padding: 34px 26px; min-width: 0; width: min(92vw, 400px); }
+      #results-screen .grade { font-size: clamp(3rem, 13vw, 5rem); }
+      #training-select .panel { width: min(92vw, 520px); padding: 0 16px; }
+      .training-btn { padding: 11px 16px; }
+      .training-btn .enemy-desc { font-size: 0.62rem; }
+    }
+
+    /* 手機橫向（高度很小）再收緊 */
+
+    @media (max-height: 430px) {
+      #pause-menu .pm-panel { padding: 22px 32px 18px; }
+      #pause-menu .pm-title { font-size: 1.4rem; margin-bottom: 14px; }
+      #pause-menu .pm-btn { padding: 10px 16px; font-size: 0.85rem; margin: 5px 0; }
+      #blocker .title-area { padding: 26px 30px; }
+      #blocker .title-area h1 { font-size: clamp(1.7rem, 8vw, 3rem); }
+      #blocker .title-area .sub { margin-bottom: 16px; }
+      #blocker .title-area .divider { margin-bottom: 20px; }
+      #blocker .title-area .sys-info { margin-top: 16px; }
+      #rotate-overlay { gap: 16px; }
+      #rotate-overlay .rot-phone { width: 52px; height: 84px; }
+    }
   </style>
-  <script type="module" crossorigin src="./assets/index-Cmwd9IKR.js"></script>
+  <script type="module" crossorigin src="./assets/index-B53MhJAd.js"></script>
 </head>
 <body>
     <div id="blocker">
@@ -610,6 +897,37 @@
         <span id="dgal-close" style="color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.9rem;">✕ 關閉</span>
       </div>
       <div id="dgal-entries"></div>
+    </div>
+  </div>
+
+  <div id="cinema-bars" aria-hidden="true">
+    <div class="cb cb-top"></div>
+    <div class="cb cb-bottom"></div>
+  </div>
+
+  <div id="rotate-overlay">
+    <div class="rot-phone"></div>
+    <div>請將裝置旋轉為橫向</div>
+    <div class="rot-sub">ROTATE DEVICE</div>
+  </div>
+
+  <div id="touch-controls">
+    <div id="joystick-zone"></div>
+    <div id="aim-zone"></div>
+    <div id="joystick-base"></div>
+    <div id="joystick-thumb"></div>
+    <button id="btn-menu" class="touch-btn" aria-label="選單">☰</button>
+    <button id="btn-weapon" class="touch-btn" aria-label="切換武器">⟳</button>
+    <button id="btn-jump" class="touch-btn" aria-label="跳躍">跳<span class="bj-sub">JUMP</span></button>
+    <button id="btn-fire" class="touch-btn" aria-label="射擊">射<span class="bf-sub">FIRE</span></button>
+  </div>
+
+  <div id="pause-menu">
+    <div class="pm-panel">
+      <div class="pm-title">暫停</div>
+      <button id="pm-resume" class="pm-btn">繼續遊戲</button>
+      <button id="pm-restart" class="pm-btn">重新開始本層</button>
+      <button id="pm-quit" class="pm-btn pm-danger">返回主選單</button>
     </div>
   </div>
 
