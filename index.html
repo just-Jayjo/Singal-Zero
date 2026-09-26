@@ -568,18 +568,18 @@
     }
 
     #btn-fire {
-      right: 24px; bottom: 58px; width: 90px; height: 90px;
+      right: 24px; bottom: 34px; width: 90px; height: 90px;
       z-index: 33;
       border-color: rgba(0,242,255,0.5);
     }
 
     #btn-jump {
-      right: 136px; bottom: 66px; width: 74px; height: 74px;
+      right: 136px; bottom: 42px; width: 74px; height: 74px;
       z-index: 33;
     }
 
     #btn-weapon {
-      right: 24px; bottom: 164px; width: 50px; height: 50px;
+      right: 24px; bottom: 140px; width: 50px; height: 50px;
       z-index: 33;
     }
 
@@ -598,7 +598,10 @@
 
     body.touch-mode #controls-hint { display: none !important; }
 
-    body.touch-mode #dev-indicator { display: none !important; }
+    body.touch-mode #dev-indicator {
+      top: auto; right: auto; left: 16px; bottom: 62px;
+      font-size: 0.58rem; letter-spacing: 0.18em;
+    }
 
     /* HUD 內可互動元素（彈藥面板、下一層提示）需蓋過 touch 區域才點得到 */
 
@@ -620,7 +623,7 @@
 
     body.touch-mode #ammo-panel:active { border-color: rgba(0,242,255,0.5); }
 
-    body.touch-mode #enemy-panel { top: 16px; left: 74px; }
+    body.touch-mode #enemy-panel { top: 2px; left: 74px; }
 
     body.touch-mode #enemy-panel .label { font-size: 0.62rem; margin-bottom: 2px; }
 
@@ -744,6 +747,11 @@
 
     #pm-guide .pg-row span { text-align: right; }
 
+    #pm-guide .pg-ico {
+      display: inline-block; width: 1.05em; height: 1.05em;
+      vertical-align: -0.16em; margin-right: 5px;
+    }
+
     body.touch-mode #pm-guide [data-mode="touch"] { display: block; }
 
     body:not(.touch-mode) #pm-guide [data-mode="key"] { display: block; }
@@ -806,7 +814,7 @@
       #rotate-overlay .rot-phone { width: 52px; height: 84px; }
     }
   </style>
-  <script type="module" crossorigin src="./assets/index-DD0vMqh8.js"></script>
+  <script type="module" crossorigin src="./assets/index-DPAncZ1r.js"></script>
 </head>
 <body>
     <div id="blocker">
@@ -971,7 +979,7 @@
       <svg class="tb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.5 8.5 0 1 1-2.7-6.2"/><path d="M20.6 4v5.3h-5.3"/></svg>
     </button>
     <button id="btn-jump" class="touch-btn" aria-label="跳躍">
-      <svg class="tb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.3" r="2.1"/><path d="M12 6.9v5.3"/><path d="M12 8.6 6.7 5.4M12 8.6l5.3-3.2"/><path d="M12 12.2 7.7 18.6M12 12.2l4.3 6.4"/></svg>
+      <svg class="tb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.4V6.2"/><path d="M5.7 12.3 12 6l6.3 6.3"/></svg>
     </button>
     <button id="btn-fire" class="touch-btn" aria-label="射擊">
       <svg class="tb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="7.2"/><path d="M12 1.9v4.6M12 17.5v4.6M1.9 12h4.6M17.5 12h4.6"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -990,14 +998,13 @@
         <div class="pg-head">操作指南</div>
         <div class="pg-body">
           <div class="pg-col" data-mode="touch">
-            <div class="pg-row"><b>左半螢幕拖曳</b><span>移動（推到底＝衝刺）</span></div>
-            <div class="pg-row"><b>右半螢幕拖曳</b><span>轉動視角</span></div>
-            <div class="pg-row"><b>◎ 射擊鍵</b><span>按住持續開火</span></div>
-            <div class="pg-row"><b>⤒ 跳躍鍵</b><span>跳躍</span></div>
-            <div class="pg-row"><b>⟳ 切換武器鍵</b><span>循環切槍</span></div>
+            <div class="pg-row"><b><svg class="pg-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5.2"/><path d="M12 16V8.6"/><circle cx="12" cy="6.6" r="2.2"/></svg>左半螢幕拖曳</b><span>移動（推到底＝衝刺）</span></div>
+            <div class="pg-row"><b><svg class="pg-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>右半螢幕拖曳</b><span>轉動視角</span></div>
+            <div class="pg-row"><b><svg class="pg-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="7.2"/><path d="M12 1.9v4.6M12 17.5v4.6M1.9 12h4.6M17.5 12h4.6"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>射擊鍵</b><span>按住持續開火</span></div>
+            <div class="pg-row"><b><svg class="pg-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.4V6.2"/><path d="M5.7 12.3 12 6l6.3 6.3"/></svg>跳躍鍵</b><span>跳躍</span></div>
+            <div class="pg-row"><b><svg class="pg-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.5 8.5 0 1 1-2.7-6.2"/><path d="M20.6 4v5.3h-5.3"/></svg>切換武器鍵</b><span>循環切槍</span></div>
             <div class="pg-row"><b>點彈藥數字</b><span>手動換彈</span></div>
             <div class="pg-row"><b>清空敵人後點提示</b><span>前往下一層</span></div>
-            <div class="pg-row"><b>☰ 選單鍵</b><span>暫停</span></div>
           </div>
           <div class="pg-col" data-mode="key">
             <div class="pg-row"><b>W A S D</b><span>移動</span></div>
