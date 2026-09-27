@@ -774,6 +774,49 @@
 
     #pm-guide-close:hover { border-color: #00f2ff; color: #00f2ff; }
 
+    #level-transition {
+      position: fixed; inset: 0; z-index: 240; display: none;
+      pointer-events: none; overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+    #level-transition.on { display: block; }
+
+    #lt-bg {
+      position: absolute; inset: 0; background: #000;
+      opacity: 0; transition: opacity 0.85s ease;
+    }
+
+    #lt-inner {
+      position: absolute; left: 0; right: 0; top: 50%;
+      transform: translateY(-50%); text-align: center;
+      padding: 0 6vw; opacity: 0; transition: opacity 0.7s ease;
+    }
+
+    #level-transition.show-text #lt-inner { opacity: 1; }
+
+    #lt-floor {
+      color: rgba(0,242,255,0.55); font-size: 0.68rem;
+      letter-spacing: 0.55em; margin-bottom: 14px;
+    }
+
+    #lt-name {
+      color: #ffffff; font-size: clamp(1.3rem, 4vw, 2.3rem);
+      letter-spacing: 0.28em; font-weight: 400;
+      text-shadow: 0 0 24px rgba(0,242,255,0.25);
+    }
+
+    #lt-rule {
+      width: 64px; height: 1px; background: rgba(0,242,255,0.45);
+      margin: 18px auto;
+    }
+
+    #lt-line {
+      color: rgba(255,255,255,0.6); font-size: clamp(0.78rem, 2vw, 0.95rem);
+      line-height: 1.8; letter-spacing: 0.08em; max-width: 46ch;
+      margin: 0 auto; white-space: pre-line;
+    }
+
     #pm-guide .pg-head {
       color: rgba(0,242,255,0.55); font-size: 0.66rem;
       letter-spacing: 0.3em; text-align: center; margin-bottom: 10px;
@@ -864,7 +907,7 @@
       #rotate-overlay .rot-phone { width: 52px; height: 84px; }
     }
   </style>
-  <script type="module" crossorigin src="./assets/index-uXpWgiii.js"></script>
+  <script type="module" crossorigin src="./assets/index-DX8v1078.js"></script>
 </head>
 <body>
     <div id="blocker">
@@ -1058,6 +1101,16 @@
   </div>
 
   <button id="hud-guide-btn">操作指南</button>
+
+  <div id="level-transition">
+    <div id="lt-bg"></div>
+    <div id="lt-inner">
+      <div id="lt-floor">LEVEL</div>
+      <div id="lt-name"></div>
+      <div id="lt-rule"></div>
+      <div id="lt-line"></div>
+    </div>
+  </div>
 
   <div id="pm-guide">
         <div class="pg-head">操作指南</div>
