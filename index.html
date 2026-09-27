@@ -760,7 +760,7 @@
 
     #pm-guide {
       display: none; position: fixed; inset: 0; z-index: 420;
-      background: rgba(4,8,16,0.96); padding: 7vh 6vw;
+      background: rgba(4,8,16,0.96); padding: max(7vh, 64px) 6vw 7vh;
       overflow-y: auto; text-align: left; box-sizing: border-box;
     }
 
@@ -911,8 +911,20 @@
       #rotate-overlay { gap: 16px; }
       #rotate-overlay .rot-phone { width: 52px; height: 84px; }
     }
+
+    /* 平板橫向：粗指標但螢幕較大，按鈕等比放大（搖桿不動，touchControls 的
+       JOY_RADIUS=52 是寫死的，改外框會讓推滿判定跟視覺對不上） */
+
+    @media (pointer: coarse) and (min-width: 900px) and (min-height: 600px) {
+      #btn-fire { width: 86px; height: 86px; right: 28px; bottom: 38px; }
+      #btn-jump { width: 70px; height: 70px; right: 132px; bottom: 46px; }
+      #btn-weapon { width: 50px; height: 50px; right: 28px; bottom: 142px; }
+      #btn-menu { width: 46px; height: 46px; top: 64px; left: 20px; }
+      #pm-guide .pg-row { font-size: 0.8rem; }
+      #pause-menu .pm-btn { font-size: 0.95rem; }
+    }
   </style>
-  <script type="module" crossorigin src="./assets/index-DegwdWOa.js"></script>
+  <script type="module" crossorigin src="./assets/index-BkzxvEQI.js"></script>
 </head>
 <body>
     <div id="blocker">
