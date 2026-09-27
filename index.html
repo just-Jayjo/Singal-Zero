@@ -68,6 +68,15 @@
 
     body.touch-mode #hud-guide-btn { display: none !important; }
 
+    /* 桌機（兩個小螢幕 media 都不成立）：操作指南按鈕與內容放大 */
+
+    @media (min-width: 901px) and (min-height: 521px) {
+      #hud-guide-btn { padding: 9px 22px; font-size: 0.92rem; letter-spacing: 0.18em; }
+      #pause-menu #pm-guide-btn { font-size: 1.06rem; padding: 11px 24px; }
+      #pm-guide .pg-row { font-size: 0.94rem; padding: 7px 0; }
+      #pm-guide .pg-ico { transform: scale(1.25); }
+    }
+
     #hud::before, #hud::after {
       content: ''; position: absolute; width: 40px; height: 40px; border-color: rgba(0,242,255,0.2); border-style: solid; z-index: 11;
     }
@@ -924,7 +933,7 @@
       #pause-menu .pm-btn { font-size: 0.95rem; }
     }
   </style>
-  <script type="module" crossorigin src="./assets/index-BkzxvEQI.js"></script>
+  <script type="module" crossorigin src="./assets/index-Bzlfm3z-.js"></script>
 </head>
 <body>
     <div id="blocker">
